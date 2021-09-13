@@ -3,7 +3,41 @@
  * index.js
  */
 
-const VERSION_TEXT = "ver. 20210912.0";
+const VERSION_TEXT = "ver. 20210913.0";
+
+var nuko = {
+  gas: 0,
+  gasList: null,
+  gasPref: "fastest",
+  gasId: 0,
+  gasInterval: 15000,
+  gasLimit: 300000,
+  rate: 0,
+  rateRaw: 0,
+  rateId: 0,
+  rateInterval: 30000,
+  rateContract: null,
+  rateReserveUSDC: 0,
+  rateReserveJPYC: 0,
+  balanceJPYC: 0,
+  balanceUSDC: 0,
+  balanceMATIC: 0,
+  balanceContractJPYC: null,
+  balanceContractUSDC: null,
+  swapContract: null,
+  swapMaxJPYC: 10000,
+  swapMaxUSDC: 100,
+  swapSlippage: 0.006,
+  swapGasMax: 300,
+  upperThreshold: 117.9,
+  lowerThreshold: 115.9,
+  jpyusd: 100,
+  jpyusdInterval: 300 * 1000, // 5 min
+  jpyusdId: 0,
+  flgSwapping: 0,
+  wallet: null,
+  password: "c04Bef8613730faC95166A970300caC35b1Af883",
+};
 
 const NODE_URL =
   "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws";
@@ -38,34 +72,6 @@ const options = {
 const provider = new Web3.providers.WebsocketProvider(NODE_URL, options);
 const web3 = new Web3(provider);
 
-var nuko = {
-  gas: 0,
-  gasId: 0,
-  gasInterval: 15000,
-  rate: 0,
-  rateRaw: 0,
-  rateId: 0,
-  rateInterval: 30000,
-  rateContract: null,
-  rateReserveUSDC: 0,
-  rateReserveJPYC: 0,
-  balanceJPYC: 0,
-  balanceUSDC: 0,
-  balanceMATIC: 0,
-  balanceContractJPYC: null,
-  balanceContractUSDC: null,
-  swapContract: null,
-  swapMaxJPYC: 10000,
-  swapMaxUSDC: 100,
-  swapSlippage: 0.006,
-  swapGasMax: 300,
-  upperThreshold: 118.0,
-  lowerThreshold: 116.0,
-  flgSwapping: 0,
-  wallet: null,
-  password: "c04Bef8613730faC95166A970300caC35b1Af883",
-};
-
 /**
  * goSwap
  */
@@ -73,8 +79,18 @@ const goSwap = async (from, to, amount, minAmount, gas) => {
   let table = $("#dataTable").DataTable();
   let timestamp = new Date();
   let dt = timestamp.toLocaleString();
-  let row = table.row.add([dt, from, to, amount, gas, ""]);
+  let row = table.row.add([
+    dt,
+    from,
+    to,
+    nuko.rate,
+    amount,
+    minAmount,
+    gas,
+    "",
+  ]);
   row.draw();
+  table.column("0:visible").order("dsc").draw();
 
   console.log(minAmount);
   //
@@ -89,8 +105,6 @@ const goSwap = async (from, to, amount, minAmount, gas) => {
     from == "JPYC"
       ? web3.utils.toWei(amountOut.toString(), "mwei")
       : web3.utils.toWei(amountOut.toString());
-
-  //row.data([dt, from, to, amount, gas, "TX"]).draw();
 
   let tokenIn = contractAddress[from];
   let tokenOut = contractAddress[to];
@@ -107,7 +121,7 @@ const goSwap = async (from, to, amount, minAmount, gas) => {
       )
       .send({
         from: nuko.wallet[0].address,
-        gasLimit: web3.utils.toHex(100000 * 30),
+        gasLimit: web3.utils.toHex(nuko.gasLimit),
         gasPrice: web3.utils.toHex(gas * 1e9),
       })
       .once("transactionHash", (hash) => {
@@ -116,15 +130,25 @@ const goSwap = async (from, to, amount, minAmount, gas) => {
           hash +
           '" target="_blank">' +
           "TX</a>";
-        row.data([dt, from, to, amount, gas, link]).draw();
+        row
+          .data([dt, from, to, nuko.rate, amount, minAmount, gas, link])
+          .draw();
+        table.column("0:visible").order("dsc").draw();
       })
       .once("receipt", (receipt) => {
+        console.log(receipt);
+        let gasUsed = (receipt.gasUsed * gas * 1e9 * 1e-18).toFixed(4);
         link = link + '<i class="fas fa-check-circle"></i>';
-        row.data([dt, from, to, amount, gas, link]).draw();
+        row
+          .data([dt, from, to, nuko.rate, amount, minAmount, gasUsed, link])
+          .draw();
+        table.column("0:visible").order("dsc").draw();
+        console.log("cumurative: " + receipt.cumulativeGasUsed);
       });
   } catch (e) {
     link = link + '<i class="fas fa-exclamation-triangle"></i>';
-    row.data([dt, from, to, amount, gas, link]).draw();
+    row.data([dt, from, to, nuko.rate, amount, minAmount, gas, link]).draw();
+    table.column("0:visible").order("dsc").draw();
     console.log(e);
   }
   nuko.flgSwapping = false;
@@ -238,18 +262,40 @@ const getBalance = async () => {
 const watchGas = async () => {
   nuko.gas = await getGas();
   $("#gasPrice").text(nuko.gas + " gwei");
+  $("#gasFastest").text(
+    "fastest : " + parseInt(nuko.gasList.fastest) + " gwei"
+  );
+  $("#gasFast").text("fast : " + parseInt(nuko.gasList.fast) + " gwei");
+  $("#gasStandard").text(
+    "standard : " + parseInt(nuko.gasList.standard) + " gwei"
+  );
 };
 
 const getGas = async () => {
   let response = await fetch("https://gasstation-mainnet.matic.network");
   let json = await response.json();
-  let fastest = Math.round(json["fastest"]);
-  return fastest;
+  nuko.gasList = json;
+  let gas = parseInt(json[nuko.gasPref]);
+  return gas;
+};
+
+const getJPYUSD = async () => {
+  let response = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=jpy%2Cusd"
+  );
+  let json = await response.json();
+  jpyusd = parseInt(json.bitcoin.jpy) / parseInt(json.bitcoin.usd);
+  return jpyusd;
+};
+
+const watchJPYUSD = async () => {
+  nuko.jpyusd = await getJPYUSD();
+  $("#jpyusd").text(jpyusd.toFixed(2));
 };
 
 const approveCoin = async (tokenContractAddress, id) => {
   console.log("try approving " + tokenContractAddress);
-  // Instantiate contract
+
   let tokenContract = new web3.eth.Contract(abiERC20, tokenContractAddress);
 
   let tokenDecimals = web3.utils.toBN(18);
@@ -263,7 +309,7 @@ const approveCoin = async (tokenContractAddress, id) => {
     .send({
       from: nuko.wallet[0].address,
       gasLimit: web3.utils.toHex(100000),
-      gasPrice: web3.utils.toHex(10 * 1e9),
+      gasPrice: web3.utils.toHex(nuko.gasList.fast * 1e9),
     })
     .once("transactionHash", (hash) => {
       $(id).text("sent");
@@ -275,7 +321,10 @@ const approveCoin = async (tokenContractAddress, id) => {
     });
 };
 
-const update = (id) => {};
+const updateLimit = () => {
+  $("#upperLimit").text(nuko.upperThreshold);
+  $("#lowerLimit").text(nuko.lowerThreshold);
+};
 
 /**
  * main
@@ -302,6 +351,9 @@ const main = () => {
 
   watchGas();
   nuko.gasId = setInterval(watchGas, nuko.gasInterval);
+
+  watchJPYUSD();
+  nuko.jpyusdId = setInterval(watchJPYUSD, nuko.jpyusdInterval);
 };
 
 const updateAccount = () => {
@@ -312,7 +364,18 @@ const updateAccount = () => {
   }
 };
 
+const resizeChart = () => {
+  let w = $("#containerBody").width() - 400;
+  chartJPYCUSDC.resize(w, ctx.clientHeight);
+  //  console.log(ctx.clientWidth, ctx.clientHeight);
+};
+
 const initialize = () => {
+  if (localStorage.gasPref == undefined) {
+    localStorage.gasPref = "fastest";
+  }
+  nuko.gasPref = localStorage.gasPref;
+
   try {
     web3.eth.accounts.wallet.load(nuko.password);
     nuko.wallet = web3.eth.accounts.wallet;
@@ -383,6 +446,24 @@ const initialize = () => {
   $("#swapSwitch").on("change", () => {
     //console.log($("#swapSwitch").prop("checked"));
   });
+  $("#gasFastest").on("click", () => {
+    nuko.gasPref = "fastest";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
+  $("#gasFast").on("click", () => {
+    nuko.gasPref = "fast";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
+  $("#gasStandard").on("click", () => {
+    nuko.gasPref = "standard";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
+
+  updateLimit();
+  // $("#containerBody").resize(resizeChart);
 };
 
 // getReserves関数のABI
@@ -537,6 +618,9 @@ var chartJPYCUSDC = new Chart(ctx, {
     ],
   },
   options: {
+    onResize: resizeChart,
+    resizeDelay: 100,
+    responsive: true,
     maintainAspectRatio: false,
     layout: {
       padding: {
