@@ -42,7 +42,7 @@ var nuko = {
   wallet: null,
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
   theDayOfTrueStable: "2021-10-10T10:10:10.000Z",
-  theDayOfNuko: "2021-09-14T00:02:00.000Z",
+  theDayOfNuko: "2021-09-13T10:00:00.000Z",
   theDayOfNukoRateDeviate: 117.0 / 110.0,
 };
 
