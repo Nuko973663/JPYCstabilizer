@@ -158,9 +158,12 @@
             <div>
                 <a href="#" class="btn btn-success btn-icon-split btn-sm mx-2">
                     <span class="icon text-white-50">
-                        <i class="fas fa-dollar-sign"></i>
+                        <img src="img/USDC.svg" width="20px" /></i>
                     </span>
-                    <span class="text" id="rate">JPYC</span>
+                    <span class="text" id="rate"></span>
+                    <span class="icon text-white-50">
+                        <img src="img/jpyc.png" width="20px" /></i>
+                    </span>
                 </a>
             </div>
 
@@ -377,10 +380,13 @@
                   </div>
                 </div>
               </div>
+            </div>
 
             <!-- Content Row -->
 
             <div class="row">
+
+
               <!-- Area Chart -->
               <div class="col-xl-12 col-lg-12">
                 <div class="card shadow mb-4">
@@ -408,36 +414,238 @@
                   </div>
                 </div>
               </div>
+              </div>
 
+            <div class="row">
 
               <!-- Activity Log -->
-            <div class="col-xl-12 col-lg-12">
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Activity Log</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                <thead>
-                                    <tr>
-                                        <th>DateTime</th>
-                                        <th>from</th>
-                                        <th>to</th>
-                                        <th>rate</th>
-                                        <th>amountIn</th>
-                                        <th>amountOutMin</th>
-                                        <th>gas</th>
-                                        <th>TX</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    
-                                </tbody>
-                            </table>
+              <div class="col-xl-12 col-lg-12">
+                  <div class="card shadow mb-4">
+                      <div class="card-header py-3">
+                          <h6 class="m-0 font-weight-bold text-primary">Activity Log</h6>
+                      </div>
+                      <div class="card-body">
+                          <div class="table-responsive">
+                              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                  <thead>
+                                      <tr>
+                                          <th>DateTime</th>
+                                          <th>from</th>
+                                          <th>to</th>
+                                          <th>rate</th>
+                                          <th>amountIn</th>
+                                          <th>amountOutMin</th>
+                                          <th>gas</th>
+                                          <th>TX</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+            </div>
+
+            <div class="row">
+
+              <!-- Activity Log -->
+              <div class="col-xl-6 col-lg-6">
+                  <div class="card shadow mb-4">
+                      <div class="card-header py-3">
+                          <h6 class="m-0 font-weight-bold text-primary">QuickSwap Pool Liquidity</h6>
+                      </div>
+                      <div class="card-body">
+                        
+
+                      <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                          <row>
+                          <div
+                            class="
+                              text-xs
+                              font-weight-bold
+                              text-info text-uppercase
+                              mb-1
+                            "
+                          >
+                            Liquidity
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div
+                                class="
+                                  h5
+                                  mb-0
+                                  mr-3
+                                  font-weight-bold
+                                  text-gray-800
+                                "
+                              >
+                                <span id="quickLiquidity">0.0</span>
+                              </div>
+                            </div>
+                          </div>
+                                                    <div
+                            class="
+                              text-xs
+                              font-weight-bold
+                              text-info text-uppercase
+                              mb-1
+                            "
+                          >
+                            USDC
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div
+                                class="
+                                  h5
+                                  mb-0
+                                  mr-3
+                                  font-weight-bold
+                                  text-gray-800
+                                "
+                              >
+                                <span id="quickUSDC">0.0</span>
+                              </div>
+                            </div>
+                          </div>
+                                                    <div
+                            class="
+                              text-xs
+                              font-weight-bold
+                              text-info text-uppercase
+                              mb-1
+                            "
+                          >
+                            JPYC
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div
+                                class="
+                                  h5
+                                  mb-0
+                                  mr-3
+                                  font-weight-bold
+                                  text-gray-800
+                                "
+                              >
+                                <span id="quickJPYC">0.0</span>
+                              </div>
+                            </div>
+                          </div>
+                          </row>
                         </div>
-                    </div>
-                </div>
+                        <div class="col-auto">
+                          <div>
+                            <img src="img/quickswap.png" width="48px"/></div>
+                          <div class="text-center"><a href="https://quickswap.exchange/#/add/0x2791bca1f2de4661ed88a30c99a7a9449aa84174/0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c" target="_blank">add</a></div>
+                        </div>
+                      </div>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Activity Log -->
+              <div class="col-xl-6 col-lg-6">
+                  <div class="card shadow mb-4">
+                      <div class="card-header py-3">
+                          <h6 class="m-0 font-weight-bold text-primary">SushiSwap Pool Liquidity</h6>
+                      </div>
+                      <div class="card-body">
+                      <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                          <row>
+                          <div
+                            class="
+                              text-xs
+                              font-weight-bold
+                              text-info text-uppercase
+                              mb-1
+                            "
+                          >
+                            Liquidity
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div
+                                class="
+                                  h5
+                                  mb-0
+                                  mr-3
+                                  font-weight-bold
+                                  text-gray-800
+                                "
+                              >
+                                <span id="sushiLiquidity">0.0</span>
+                              </div>
+                            </div>
+                          </div>
+                                                    <div
+                            class="
+                              text-xs
+                              font-weight-bold
+                              text-info text-uppercase
+                              mb-1
+                            "
+                          >
+                            USDC
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div
+                                class="
+                                  h5
+                                  mb-0
+                                  mr-3
+                                  font-weight-bold
+                                  text-gray-800
+                                "
+                              >
+                                <span id="sushiUSDC">0.0</span>
+                              </div>
+                            </div>
+                          </div>
+                                                    <div
+                            class="
+                              text-xs
+                              font-weight-bold
+                              text-info text-uppercase
+                              mb-1
+                            "
+                          >
+                            JPYC
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div
+                                class="
+                                  h5
+                                  mb-0
+                                  mr-3
+                                  font-weight-bold
+                                  text-gray-800
+                                "
+                              >
+                                <span id="sushiJPYC">0.0</span>
+                              </div>
+                            </div>
+                          </div>
+                          </row>
+                        </div>
+                        <div class="col-auto">
+                          <div>
+                            <img src="img/sushi.png" width="48px"/></div>
+                          <div class="text-center"><a href="https://app.sushi.com/ja/add/0x2791bca1f2de4661ed88a30c99a7a9449aa84174/0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c" target="_blank">add</a></div>
+                        </div>
+                      </div>
+                      </div>
+                  </div>
+              </div>
             </div>
 
           </div>
@@ -582,22 +790,58 @@
         <div class="modal-body" >
             <div id="modalBody2">
               <div>Do not click two approve buttons simultaneously. Approve another coin when one approval is done.</div>
-              <div>
-                <a href="#" class="btn btn-primary btn-icon-split" id="approveJPYC">
-                    <span class="icon text-white-50">
-                        <i class="fas fa-arrow-right"></i>
-                    </span>
-                    <span class="text" id="approveJPYCtext">Approve JPYC</span>
-                </a>
-                
+              <div class="row my-3">
+                <div class="col">
+                  <a href="#" class="btn btn-primary btn-icon-split" id="approveJPYC0">
+                      <span class="icon text-white-50">
+                          <img src="img/quickswap.png" width="40px" />
+                      </span>
+                      <span class="text" id="approveJPYCtext0">Approve JPYC</span>
+                      <span class="icon text-white-50">
+                          <img src="img/jpyc.png" width="40px"  />
+                      </span>
+                  </a>
+                </div>
 
-                <a href="#" class="btn btn-primary btn-icon-split" id="approveUSDC">
-                    <span class="icon text-white-50">
-                        <i class="fas fa-arrow-right"></i>
-                    </span>
-                    <span class="text" id="approveUSDCtext">Approve USDC</span>
-                </a>
+                <div class="col">
+                  <a href="#" class="btn btn-primary btn-icon-split" id="approveUSDC0">
+                      <span class="icon text-white-50">
+                          <img src="img/quickswap.png" width="40px"  />
+                      </span>
+                      <span class="text" id="approveUSDCtext0">Approve USDC</span>
+                      <span class="icon text-white-50">
+                          <img src="img/USDC.svg" width="40px"  />
+                      </span>
+                  </a>
+                </div>
               </div>
+
+              <div class="row my-3">
+                <div class="col">
+                  <a href="#" class="btn btn-success btn-icon-split" id="approveJPYC1">
+                      <span class="icon text-white-50">
+                          <img src="img/sushi.png" width="40px"  />
+                      </span>
+                      <span class="text" id="approveJPYCtext1">Approve JPYC</span>
+                      <span class="icon text-white-50">
+                          <img src="img/jpyc.png" width="40px"  />
+                      </span>
+                  </a>
+                </div>
+
+                <div class="col">
+                  <a href="#" class="btn btn-success btn-icon-split" id="approveUSDC1">
+                      <span class="icon text-white-50">
+                          <img src="img/sushi.png" width="40px"  />
+                      </span>
+                      <span class="text" id="approveUSDCtext1">Approve USDC</span>
+                      <span class="icon text-white-50">
+                          <img src="img/USDC.svg" width="40px"  />
+                      </span>
+                  </a>
+                </div>
+              </div>
+
             </div>
         </div>
         <div class="modal-footer">
