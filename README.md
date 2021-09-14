@@ -4,6 +4,12 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210914.2](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.2)
+
+- sushi swap 対応
+- approval の状態取得に対応。承認済みの場合は approve ボタンをグレーアウト
+- QuickSwap と SushiSwap の流動性プールを表示
+
 ### [v.20210914.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.1)
 
 - target rate bug fix
