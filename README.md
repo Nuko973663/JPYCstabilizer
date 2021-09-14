@@ -6,7 +6,7 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ### [v.20210914.0]
 
-- JPYC/USDC のターゲットレート（swap トリガーレット）を 2021-10-10T10:10:10.000Z にかけて徐々に修正
+- JPYC/USDC のターゲットレート（swap トリガーレート）を 2021-10-10T10:10:10.000Z にかけて徐々に修正
 - swap ログを 100 件 localStrage に保存
 - swap のトグルの状態を localStrage に保存
 
