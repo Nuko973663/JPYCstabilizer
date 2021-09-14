@@ -3,7 +3,7 @@
  * index.js
  */
 
-const VERSION_TEXT = "ver. 20210913.0";
+const VERSION_TEXT = "ver. 20210914.0";
 
 var nuko = {
   gas: 0,
@@ -15,7 +15,7 @@ var nuko = {
   rate: 0,
   rateRaw: 0,
   rateId: 0,
-  rateInterval: 30000,
+  rateInterval: 30000, // RPC nodeに負荷をかけるので短くするのはお控えください Please do not shorten rateInterval. It causes high load of RPC node.
   rateContract: null,
   rateReserveUSDC: 0,
   rateReserveJPYC: 0,
@@ -29,6 +29,8 @@ var nuko = {
   swapMaxUSDC: 100,
   swapSlippage: 0.006,
   swapGasMax: 300,
+  swapLog: [],
+  swapMaxLog: 100,
   upperThreshold: 117.9,
   lowerThreshold: 115.9,
   jpyusd: 100,
@@ -37,6 +39,9 @@ var nuko = {
   flgSwapping: 0,
   wallet: null,
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
+  theDayOfTrueStable: "2021-10-10T10:10:10.000Z",
+  theDayOfNuko: "2021-09-14T00:02:00.000Z",
+  theDayOfNukoRateDeviate: 117.0 / 110.0,
 };
 
 const NODE_URL =
@@ -139,11 +144,13 @@ const goSwap = async (from, to, amount, minAmount, gas) => {
         console.log(receipt);
         let gasUsed = (receipt.gasUsed * gas * 1e9 * 1e-18).toFixed(4);
         link = link + '<i class="fas fa-check-circle"></i>';
-        row
-          .data([dt, from, to, nuko.rate, amount, minAmount, gasUsed, link])
-          .draw();
+        let log = [dt, from, to, nuko.rate, amount, minAmount, gasUsed, link];
+        row.data(log).draw();
         table.column("0:visible").order("dsc").draw();
-        console.log("cumurative: " + receipt.cumulativeGasUsed);
+        if (nuko.swapLog.unshift(log) > nuko.swapMaxLog) {
+          nuko.swapLog.pop();
+        }
+        localStorage.swapLog = JSON.stringify(nuko.swapLog);
       });
   } catch (e) {
     link = link + '<i class="fas fa-exclamation-triangle"></i>';
@@ -285,12 +292,23 @@ const getJPYUSD = async () => {
   );
   let json = await response.json();
   jpyusd = parseInt(json.bitcoin.jpy) / parseInt(json.bitcoin.usd);
+
+  let deviateTorelance =
+    Math.max(0, Date.parse(nuko.theDayOfTrueStable) - Date.now()) /
+    (Date.parse(nuko.theDayOfTrueStable) - Date.parse(nuko.theDayOfNuko));
+
+  let targetRate = deviateTorelance * nuko.theDayOfNukoRateDeviate * jpyusd;
+
+  nuko.upperThreshold = targetRate + 1.0;
+  nuko.lowerThreshold = targetRate - 1.0;
+
   return jpyusd;
 };
 
 const watchJPYUSD = async () => {
   nuko.jpyusd = await getJPYUSD();
   $("#jpyusd").text(jpyusd.toFixed(2));
+  updateLimit();
 };
 
 const approveCoin = async (tokenContractAddress, id) => {
@@ -322,8 +340,8 @@ const approveCoin = async (tokenContractAddress, id) => {
 };
 
 const updateLimit = () => {
-  $("#upperLimit").text(nuko.upperThreshold);
-  $("#lowerLimit").text(nuko.lowerThreshold);
+  $("#upperLimit").text(nuko.upperThreshold.toFixed(2));
+  $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
 
 /**
@@ -444,7 +462,7 @@ const initialize = () => {
     }
   });
   $("#swapSwitch").on("change", () => {
-    //console.log($("#swapSwitch").prop("checked"));
+    localStorage.switch = $("#swapSwitch").prop("checked");
   });
   $("#gasFastest").on("click", () => {
     nuko.gasPref = "fastest";
@@ -463,7 +481,21 @@ const initialize = () => {
   });
 
   updateLimit();
-  // $("#containerBody").resize(resizeChart);
+
+  if (localStorage.switch == undefined) {
+    localStorage.switch = "false";
+  }
+  if (localStorage.switch == "true") {
+    $("#swapSwitch").bootstrapToggle("on");
+  }
+
+  nuko.swapLog = JSON.parse(localStorage.getItem("swapLog") || "[]");
+
+  let table = $("#dataTable").DataTable();
+  nuko.swapLog.forEach((log) => {
+    table.row.add(log);
+  });
+  table.column("0:visible").order("dsc").draw();
 };
 
 // getReserves関数のABI

@@ -4,6 +4,12 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210914.0]
+
+- JPYC/USDC のターゲットレート（swap トリガーレット）を 2021-10-10T10:10:10.000Z にかけて徐々に修正
+- swap ログを 100 件 localStrage に保存
+- swap のトグルの状態を localStrage に保存
+
 ### [v.20210913.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210913.0)
 
 - ドル円レートの表示
