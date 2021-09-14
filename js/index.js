@@ -5,7 +5,7 @@
 
 "use strict";
 
-const VERSION_TEXT = "ver. 20210914.0";
+const VERSION_TEXT = "ver. 20210914.1";
 
 var nuko = {
   gas: 0,
