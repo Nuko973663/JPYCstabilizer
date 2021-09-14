@@ -208,14 +208,20 @@ const watchRate = async () => {
 
   if ($("#swapSwitch").prop("checked")) {
     console.log(nuko.rate);
-    for (let i = 0; i < 2; i++) {
+
+    let array = [0, 1];
+    if (Math.random() > 0.5) {
+      array = array.reverse();
+    }
+    array.forEach((i) => {
+      //console.log(i);
       if (
         nuko.rate[i] > nuko.upperThreshold &&
         parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) > 1
       ) {
         if (!nuko.flgSwapping) {
           nuko.flgSwapping = true;
-          console.log("USDC->JPYC");
+          //console.log("USDC->JPYC");
           let bl =
             parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) * 0.99999;
           let amount = bl > nuko.swapMaxUSDC ? nuko.swapMaxUSDC : bl;
@@ -236,7 +242,7 @@ const watchRate = async () => {
       ) {
         if (!nuko.flgSwapping) {
           nuko.flgSwapping = true;
-          console.log("JPYC -> USDC");
+          //console.log("JPYC -> USDC");
           let bl = parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) * 0.99999;
           let amount = bl > nuko.swapMaxJPYC ? nuko.swapMaxJPYC : bl;
           let minAmount = (amount / nuko.rate[i]) * (1.0 - nuko.swapSlippage);
@@ -251,7 +257,7 @@ const watchRate = async () => {
           );
         }
       }
-    }
+    });
   }
   updateLiquidity();
 };
