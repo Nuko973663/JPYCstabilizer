@@ -3,7 +3,9 @@
  * index.js
  */
 
-const VERSION_TEXT = "ver. 20210913.0";
+"use strict";
+
+const VERSION_TEXT = "ver. 20210914.1";
 
 var nuko = {
   gas: 0,
@@ -15,7 +17,7 @@ var nuko = {
   rate: 0,
   rateRaw: 0,
   rateId: 0,
-  rateInterval: 30000,
+  rateInterval: 30000, // RPC nodeに負荷をかけるので短くするのはお控えください Please do not shorten rateInterval. It causes high load of RPC node.
   rateContract: null,
   rateReserveUSDC: 0,
   rateReserveJPYC: 0,
@@ -29,6 +31,8 @@ var nuko = {
   swapMaxUSDC: 100,
   swapSlippage: 0.006,
   swapGasMax: 300,
+  swapLog: [],
+  swapMaxLog: 100,
   upperThreshold: 117.9,
   lowerThreshold: 115.9,
   jpyusd: 100,
@@ -37,16 +41,21 @@ var nuko = {
   flgSwapping: 0,
   wallet: null,
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
+  theDayOfTrueStable: "2021-10-10T10:10:10.000Z",
+  theDayOfNuko: "2021-09-13T10:00:00.000Z",
+  theDayOfNukoRateDeviate: 117.0 / 110.0,
 };
 
 const NODE_URL =
   "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws";
-const pairAddress = "0x205995421C72Dc223F36BbFad78B66EEa72d2677";
 
 const contractAddress = {
   JPYC: "0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c",
   USDC: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-  router: "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff",
+  routerQuick: "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff",
+  pairQuick: "0x205995421C72Dc223F36BbFad78B66EEa72d2677",
+  routerSushi: "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
+  pairSushi: "0xfbae8e2d04a67c10047d83ee9b8aeffe7f6ea3f4",
 };
 
 const decimal = {
@@ -139,11 +148,13 @@ const goSwap = async (from, to, amount, minAmount, gas) => {
         console.log(receipt);
         let gasUsed = (receipt.gasUsed * gas * 1e9 * 1e-18).toFixed(4);
         link = link + '<i class="fas fa-check-circle"></i>';
-        row
-          .data([dt, from, to, nuko.rate, amount, minAmount, gasUsed, link])
-          .draw();
+        let log = [dt, from, to, nuko.rate, amount, minAmount, gasUsed, link];
+        row.data(log).draw();
         table.column("0:visible").order("dsc").draw();
-        console.log("cumurative: " + receipt.cumulativeGasUsed);
+        if (nuko.swapLog.unshift(log) > nuko.swapMaxLog) {
+          nuko.swapLog.pop();
+        }
+        localStorage.swapLog = JSON.stringify(nuko.swapLog);
       });
   } catch (e) {
     link = link + '<i class="fas fa-exclamation-triangle"></i>';
@@ -218,15 +229,14 @@ const getRate = async () => {
     });
   let timestamp = new Date();
   let dt = timestamp.toLocaleString().slice(0, -3);
-  chartAddData(dt, nuko.rate);
+  chartAddData(dt, [nuko.rate, nuko.rate]);
 };
 
 const chartAddData = (label, data) => {
   let chart = chartJPYCUSDC;
   chart.data.labels.push(label);
-  chart.data.datasets.forEach((dataset) => {
-    dataset.data.push(data);
-  });
+  chart.data.datasets[0].data.push(data[0]);
+  chart.data.datasets[1].data.push(data[1]);
   chart.update();
 };
 
@@ -284,13 +294,25 @@ const getJPYUSD = async () => {
     "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=jpy%2Cusd"
   );
   let json = await response.json();
-  jpyusd = parseInt(json.bitcoin.jpy) / parseInt(json.bitcoin.usd);
+  let jpyusd = parseInt(json.bitcoin.jpy) / parseInt(json.bitcoin.usd);
+
+  let deviateTorelance =
+    Math.max(0, Date.parse(nuko.theDayOfTrueStable) - Date.now()) /
+    (Date.parse(nuko.theDayOfTrueStable) - Date.parse(nuko.theDayOfNuko));
+
+  let targetRate =
+    (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
+
+  nuko.upperThreshold = targetRate + 1.0;
+  nuko.lowerThreshold = targetRate - 1.0;
+
   return jpyusd;
 };
 
 const watchJPYUSD = async () => {
   nuko.jpyusd = await getJPYUSD();
-  $("#jpyusd").text(jpyusd.toFixed(2));
+  $("#jpyusd").text(nuko.jpyusd.toFixed(2));
+  updateLimit();
 };
 
 const approveCoin = async (tokenContractAddress, id) => {
@@ -305,7 +327,7 @@ const approveCoin = async (tokenContractAddress, id) => {
   );
 
   await tokenContract.methods
-    .approve(contractAddress.router, calculatedApproveValue)
+    .approve(contractAddress.routerQuick, calculatedApproveValue)
     .send({
       from: nuko.wallet[0].address,
       gasLimit: web3.utils.toHex(100000),
@@ -322,8 +344,8 @@ const approveCoin = async (tokenContractAddress, id) => {
 };
 
 const updateLimit = () => {
-  $("#upperLimit").text(nuko.upperThreshold);
-  $("#lowerLimit").text(nuko.lowerThreshold);
+  $("#upperLimit").text(nuko.upperThreshold.toFixed(2));
+  $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
 
 /**
@@ -340,10 +362,10 @@ const main = () => {
     abiERC20,
     contractAddress.USDC
   );
-  nuko.contractRate = new web3.eth.Contract(abi, pairAddress);
+  nuko.contractRate = new web3.eth.Contract(abi, contractAddress.pairQuick);
   nuko.swapContract = new web3.eth.Contract(
     abiUniswapV2Router,
-    contractAddress.router
+    contractAddress.routerQuick
   );
 
   watchRate();
@@ -444,7 +466,7 @@ const initialize = () => {
     }
   });
   $("#swapSwitch").on("change", () => {
-    //console.log($("#swapSwitch").prop("checked"));
+    localStorage.switch = $("#swapSwitch").prop("checked");
   });
   $("#gasFastest").on("click", () => {
     nuko.gasPref = "fastest";
@@ -463,7 +485,21 @@ const initialize = () => {
   });
 
   updateLimit();
-  // $("#containerBody").resize(resizeChart);
+
+  if (localStorage.switch == undefined) {
+    localStorage.switch = "false";
+  }
+  if (localStorage.switch == "true") {
+    $("#swapSwitch").bootstrapToggle("on");
+  }
+
+  nuko.swapLog = JSON.parse(localStorage.getItem("swapLog") || "[]");
+
+  let table = $("#dataTable").DataTable();
+  nuko.swapLog.forEach((log) => {
+    table.row.add(log);
+  });
+  table.column("0:visible").order("dsc").draw();
 };
 
 // getReserves関数のABI
@@ -601,7 +637,7 @@ var chartJPYCUSDC = new Chart(ctx, {
     labels: [],
     datasets: [
       {
-        label: "JPYC/USDC",
+        label: "QuickSwap",
         lineTension: 0.3,
         backgroundColor: "rgba(78, 115, 223, 0.05)",
         borderColor: "rgba(78, 115, 223, 1)",
@@ -611,6 +647,21 @@ var chartJPYCUSDC = new Chart(ctx, {
         pointHoverRadius: 3,
         pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
         pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        data: [],
+      },
+      {
+        label: "SushiSwap",
+        lineTension: 0.3,
+        backgroundColor: "rgba(204, 0, 255, 0.05)",
+        borderColor: "rgba(204, 0, 255, 1)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(204, 0, 255, 1)",
+        pointBorderColor: "rgba(204, 0, 255, 1)",
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: "rgba(204, 0, 255, 1)",
+        pointHoverBorderColor: "rgba(204, 0, 255, 1)",
         pointHitRadius: 10,
         pointBorderWidth: 2,
         data: [],
@@ -652,7 +703,7 @@ var chartJPYCUSDC = new Chart(ctx, {
             padding: 10,
             // Include a dollar sign in the ticks
             callback: function (value, index, values) {
-              return number_format(value) + "";
+              return number_format(value, 2) + "";
             },
           },
           gridLines: {
@@ -666,7 +717,7 @@ var chartJPYCUSDC = new Chart(ctx, {
       ],
     },
     legend: {
-      display: false,
+      display: true,
     },
     tooltips: {
       backgroundColor: "rgb(255,255,255)",
