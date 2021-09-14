@@ -29,7 +29,7 @@ var nuko = {
   swapContract: [],
   swapMaxJPYC: 10000,
   swapMaxUSDC: 100,
-  swapSlippage: 0.006,
+  swapSlippage: 0.007,
   swapGasMax: 300,
   swapLog: [],
   swapMaxLog: 100,
