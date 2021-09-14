@@ -4,6 +4,10 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210914.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.1)
+
+- target rate bug fix
+
 ### [v.20210914.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.0)
 
 - JPYC/USDC のターゲットレート（swap トリガーレート）を 2021-10-10T10:10:10.000Z にかけて徐々に修正
