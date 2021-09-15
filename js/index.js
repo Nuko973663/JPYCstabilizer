@@ -5,7 +5,7 @@
 
 "use strict";
 
-const VERSION_TEXT = "ver. 20210914.2";
+const VERSION_TEXT = "20210915.1";
 
 var nuko = {
   gas: 0,
@@ -444,8 +444,8 @@ const updateLimit = () => {
  * main
  */
 const main = () => {
-  $("#versionText").text(VERSION_TEXT);
-  $("#versionText2").text(VERSION_TEXT);
+  $("#versionText").text("ver. " + VERSION_TEXT);
+  $("#versionText2").text("ver. " + VERSION_TEXT);
   initialize();
   nuko.balanceContractJPYC = new web3.eth.Contract(
     abiERC20,

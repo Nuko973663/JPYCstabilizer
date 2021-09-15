@@ -4,6 +4,11 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210915.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.1)
+
+- gas pref に faster を追加: (fastest + fast) /2
+- spread の変更機能を追加。
+
 ### [v.20210915.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.0)
 
 - sushiswap の slippage を変更（0.6% → 0.75%）
