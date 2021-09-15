@@ -2,12 +2,19 @@
 
 see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/articles/ZZoaKG4yb)
 
+## to do
+
+- dark mode の実装
+- ウォレットアドレスの非表示オプション
+
 ## update log
 
 ### [v.20210915.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.1)
 
 - gas pref に faster を追加: (fastest + fast) /2
-- spread の変更機能を追加。
+- spread の変更機能を追加
+- 1 時間に 1 回最新バージョンを確認し、リリースされていれば再読み込みする機能を追加
+- 最低 swap を設定するオプションを追加
 
 ### [v.20210915.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.0)
 
