@@ -29,7 +29,7 @@ var nuko = {
   swapContract: [],
   swapMaxJPYC: 10000,
   swapMaxUSDC: 100,
-  swapSlippage: 0.007,
+  swapSlippage: [0.006, 0.0075],
   swapGasMax: 300,
   swapLog: [],
   swapMaxLog: 100,
@@ -41,8 +41,8 @@ var nuko = {
   flgSwapping: 0,
   wallet: null,
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
-  theDayOfTrueStable: "2021-10-10T10:10:10.000Z",
-  theDayOfNuko: "2021-09-13T10:00:00.000Z",
+  theDayOfTrueStable: "2099-12-31T23:23:59.000Z",
+  theDayOfNuko: "2021-09-14T10:00:00.000Z",
   theDayOfNukoRateDeviate: 117.0 / 110.0,
   contractRate: [],
 };
@@ -225,7 +225,7 @@ const watchRate = async () => {
           let bl =
             parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) * 0.99999;
           let amount = bl > nuko.swapMaxUSDC ? nuko.swapMaxUSDC : bl;
-          let minAmount = amount * nuko.rate[i] * (1.0 - nuko.swapSlippage);
+          let minAmount = amount * nuko.rate[i] * (1.0 - nuko.swapSlippage[i]);
           //if (i == 1) minAmount = minAmount * 0.9;
           goSwap(
             "USDC",
@@ -245,7 +245,8 @@ const watchRate = async () => {
           //console.log("JPYC -> USDC");
           let bl = parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) * 0.99999;
           let amount = bl > nuko.swapMaxJPYC ? nuko.swapMaxJPYC : bl;
-          let minAmount = (amount / nuko.rate[i]) * (1.0 - nuko.swapSlippage);
+          let minAmount =
+            (amount / nuko.rate[i]) * (1.0 - nuko.swapSlippage[i]);
           // if (i == 1) minAmount = minAmount * 0.9;
           goSwap(
             "JPYC",
@@ -383,8 +384,8 @@ const getJPYUSD = async () => {
     Math.max(0, Date.parse(nuko.theDayOfTrueStable) - Date.now()) /
     (Date.parse(nuko.theDayOfTrueStable) - Date.parse(nuko.theDayOfNuko));
 
-  let targetRate =
-    (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
+  let targetRate = 116.7 + Math.random() * 0.1;
+  // (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
 
   nuko.upperThreshold = targetRate + 1.0;
   nuko.lowerThreshold = targetRate - 1.0;
@@ -436,6 +437,7 @@ const updateLimit = () => {
  */
 const main = () => {
   $("#versionText").text(VERSION_TEXT);
+  $("#versionText2").text(VERSION_TEXT);
   initialize();
   nuko.balanceContractJPYC = new web3.eth.Contract(
     abiERC20,

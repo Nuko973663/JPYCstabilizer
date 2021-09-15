@@ -4,6 +4,11 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210915.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.0)
+
+- sushiswap の slippage を変更（0.6% → 0.75%）
+- target rate を実レートに合わせていったん修正 116.7 +/- 1.0 + rand
+
 ### [v.20210914.2](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.2)
 
 - sushi swap 対応
