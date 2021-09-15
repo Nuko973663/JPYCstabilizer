@@ -357,10 +357,12 @@ const updateAllowance = async () => {
 
 const watchGas = async () => {
   nuko.gas = await getGas();
+
   $("#gasPrice").text(nuko.gas + " gwei");
   $("#gasFastest").text(
     "fastest : " + parseInt(nuko.gasList.fastest) + " gwei"
   );
+  $("#gasFaster").text("faster : " + parseInt(nuko.gasList.faster) + " gwei");
   $("#gasFast").text("fast : " + parseInt(nuko.gasList.fast) + " gwei");
   $("#gasStandard").text(
     "standard : " + parseInt(nuko.gasList.standard) + " gwei"
@@ -371,6 +373,8 @@ const getGas = async () => {
   let response = await fetch("https://gasstation-mainnet.matic.network");
   let json = await response.json();
   nuko.gasList = json;
+  nuko.gasList.faster =
+    (parseInt(nuko.gasList.fastest) + parseInt(nuko.gasList.fast)) / 2;
   let gas = parseInt(json[nuko.gasPref]);
   return gas;
 };
@@ -641,6 +645,11 @@ const initialize = () => {
   });
   $("#gasFastest").on("click", () => {
     nuko.gasPref = "fastest";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
+  $("#gasFaster").on("click", () => {
+    nuko.gasPref = "faster";
     localStorage.gasPref = nuko.gasPref;
     watchGas();
   });
