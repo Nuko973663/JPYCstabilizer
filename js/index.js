@@ -35,6 +35,8 @@ var nuko = {
   swapMaxLog: 100,
   upperThreshold: 117.9,
   lowerThreshold: 115.9,
+  target: 0,
+  spread: 2,
   jpyusd: 100,
   jpyusdInterval: 300 * 1000, // 5 min
   jpyusdId: 0,
@@ -386,9 +388,9 @@ const getJPYUSD = async () => {
 
   let targetRate = 116.7 + Math.random() * 0.1;
   // (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
-
-  nuko.upperThreshold = targetRate + 1.0;
-  nuko.lowerThreshold = targetRate - 1.0;
+  nuko.target = targetRate;
+  nuko.upperThreshold = targetRate + nuko.spread / 2;
+  nuko.lowerThreshold = targetRate - nuko.spread / 2;
 
   return jpyusd;
 };
@@ -428,6 +430,8 @@ const approveCoin = async (tokenContractAddress, spenderAddress, id) => {
 };
 
 const updateLimit = () => {
+  nuko.upperThreshold = nuko.target + nuko.spread / 2;
+  nuko.lowerThreshold = nuko.target - nuko.spread / 2;
   $("#upperLimit").text(nuko.upperThreshold.toFixed(2));
   $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
@@ -587,6 +591,17 @@ const initialize = () => {
     );
   });
 
+  $("#options").on("click", () => {
+    $("#modalOption").modal("show");
+  });
+
+  $(document).on("input", "#spreadWidth", function () {
+    nuko.spread = parseFloat($(this).val());
+    localStorage.spread = nuko.spread;
+    $("#spread").text(nuko.spread.toFixed(1));
+    updateLimit();
+  });
+
   $("#createNewWallet").on("click", () => {
     web3.eth.accounts.wallet.clear();
     nuko.wallet = web3.eth.accounts.wallet.create(1);
@@ -658,6 +673,10 @@ const initialize = () => {
   table.column("0:visible").order("dsc").draw();
 
   updateAllowance();
+
+  nuko.spread = parseFloat(localStorage.spread ? localStorage.spread : 2);
+  $("#spreadWidth").val(nuko.spread);
+  $("#spread").text(nuko.spread.toFixed(1));
 };
 
 // getReserves関数のABI
