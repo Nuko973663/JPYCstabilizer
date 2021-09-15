@@ -8,6 +8,7 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 - sushiswap の slippage を変更（0.6% → 0.75%）
 - target rate を実レートに合わせていったん修正 116.7 +/- 1.0 + rand
+- minor fix
 
 ### [v.20210914.2](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.2)
 
