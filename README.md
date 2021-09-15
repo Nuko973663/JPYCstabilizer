@@ -2,7 +2,31 @@
 
 see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/articles/ZZoaKG4yb)
 
+## to do
+
+- dark mode の実装
+- ウォレットアドレスの非表示オプション
+
 ## update log
+
+### [v.20210915.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.1)
+
+- gas pref に faster を追加: (fastest + fast) /2
+- spread の変更機能を追加
+- 1 時間に 1 回最新バージョンを確認し、リリースされていれば再読み込みする機能を追加
+- 最低 swap を設定するオプションを追加
+
+### [v.20210915.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.0)
+
+- sushiswap の slippage を変更（0.6% → 0.75%）
+- target rate を実レートに合わせていったん修正 116.7 +/- 1.0 + rand
+- minor fix
+
+### [v.20210914.2](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.2)
+
+- sushi swap 対応
+- approval の状態取得に対応。承認済みの場合は approve ボタンをグレーアウト
+- QuickSwap と SushiSwap の流動性プールを表示
 
 ### [v.20210914.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210914.1)
 
