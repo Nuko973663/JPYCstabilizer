@@ -360,9 +360,13 @@ const updateAllowance = async () => {
 };
 
 const watchGas = async () => {
+  
+/* yamachang123
+#gasPrice に選択中のnuko.gasPrefを明示。（非同期でGasとSwapは行われているため表記と異なるガス代になるため）
+*/
   nuko.gas = await getGas();
 
-  $("#gasPrice").text(nuko.gas + " gwei");
+  $("#gasPrice").text(nuko.gas + ' ' + nuko.gasPref);
   $("#gasFastest").text(
     "fastest : " + parseInt(nuko.gasList.fastest) + " gwei"
   );
@@ -370,6 +374,7 @@ const watchGas = async () => {
   $("#gasFast").text("fast : " + parseInt(nuko.gasList.fast) + " gwei");
   $("#gasStandard").text(
     "standard : " + parseInt(nuko.gasList.standard) + " gwei"
+
   );
 };
 
