@@ -240,12 +240,20 @@ const sha256 = async (str) => {
 };
 
 const getActiveUsers = async () => {
-  const digest = await sha256(nuko.wallet[0].address);
-  let param = { hash: digest };
-  postData(NUKOAPI + "v1/activeUsers", param).then((data) => {
-    //console.log(param, data);
-    $("#activeUsers").text(data.activeUsers);
-  });
+  if ($("#swapSwitch").prop("checked")) {
+    const digest = await sha256(nuko.wallet[0].address);
+    let param = { hash: digest };
+    postData(NUKOAPI + "v1/activeUsers", param).then((data) => {
+      //console.log(param, data);
+      $("#activeUsers").text(data.activeUsers);
+    });
+  } else {
+    fetch(NUKOAPI + "v1/activeUsers")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#activeUsers").text(data.activeUsers);
+      });
+  }
 };
 
 /**
