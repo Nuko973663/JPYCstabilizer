@@ -5,7 +5,7 @@
 
 "use strict";
 
-const VERSION_TEXT = "20210915.1";
+const VERSION_TEXT = "20210916.0";
 
 var nuko = {
   gas: 0,
@@ -50,7 +50,11 @@ var nuko = {
   theDayOfNukoRateDeviate: 117.0 / 110.0,
   contractRate: [],
   versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
+  keepaliveInterval: 45 * 1000, // interval to get active user number
+  reloadAvailableUpdates: false,
 };
+
+const NUKOAPI = "https://api.nuko.town/";
 
 const NODE_URL =
   "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws";
@@ -95,6 +99,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
   let table = $("#dataTable").DataTable();
   let timestamp = new Date();
   let dt = timestamp.toLocaleString();
+  let gasEstimate = "est. " + (((gas * nuko.gasLimit) / 1e9) * 0.5).toFixed(4);
   let row = table.row.add([
     dt,
     from,
@@ -102,7 +107,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
     nuko.rate[i],
     amount,
     minAmount,
-    gas,
+    gasEstimate,
     "",
   ]);
   row.draw();
@@ -156,7 +161,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
             poolLink + nuko.rate[i],
             amount,
             minAmount,
-            gas,
+            gasEstimate,
             link,
           ])
           .draw();
@@ -193,7 +198,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
         poolLink + nuko.rate[i],
         amount,
         minAmount,
-        gas,
+        gasEstimate,
         link,
       ])
       .draw();
@@ -204,8 +209,47 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
   getBalance();
 };
 
+async function postData(url = "", data = {}) {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: "POST",
+    //mode: "cors",
+    cache: "no-cache",
+    //credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    redirect: "follow",
+    referrerPolicy: "no-referrer",
+    body: JSON.stringify(data),
+  });
+  return response.json(); // parses JSON response into native JavaScript objects
+}
+
 /**
- * watch
+ * calculate SHA-256
+ * @param {*} str
+ * @returns
+ */
+const sha256 = async (str) => {
+  const buff = new Uint8Array([].map.call(str, (c) => c.charCodeAt(0))).buffer;
+  const digest = await crypto.subtle.digest("SHA-256", buff);
+  return [].map
+    .call(new Uint8Array(digest), (x) => ("00" + x.toString(16)).slice(-2))
+    .join("");
+};
+
+const getActiveUsers = async () => {
+  const digest = await sha256(nuko.wallet[0].address);
+  let param = { hash: digest };
+  postData(NUKOAPI + "v1/activeUsers", param).then((data) => {
+    //console.log(param, data);
+    $("#activeUsers").text(data.activeUsers);
+  });
+};
+
+/**
+ * watch rate
  */
 const watchRate = async () => {
   await getBalance();
@@ -360,13 +404,12 @@ const updateAllowance = async () => {
 };
 
 const watchGas = async () => {
-  
-/* yamachang123
+  /* yamachang123
 #gasPrice に選択中のnuko.gasPrefを明示。（非同期でGasとSwapは行われているため表記と異なるガス代になるため）
 */
   nuko.gas = await getGas();
 
-  $("#gasPrice").text(nuko.gas + ' ' + nuko.gasPref);
+  $("#gasPrice").text(nuko.gas + " " + nuko.gasPref);
   $("#gasFastest").text(
     "fastest : " + parseInt(nuko.gasList.fastest) + " gwei"
   );
@@ -374,7 +417,9 @@ const watchGas = async () => {
   $("#gasFast").text("fast : " + parseInt(nuko.gasList.fast) + " gwei");
   $("#gasStandard").text(
     "standard : " + parseInt(nuko.gasList.standard) + " gwei"
-
+  );
+  $("#gasSafeLow").text(
+    "safelow : " + parseInt(nuko.gasList.safeLow) + " gwei"
   );
 };
 
@@ -485,6 +530,9 @@ const main = () => {
   nuko.jpyusdId = setInterval(watchJPYUSD, nuko.jpyusdInterval);
 
   nuko.verId = setInterval(checkLatestVersion, nuko.versionInterval);
+
+  getActiveUsers();
+  setInterval(getActiveUsers, nuko.keepaliveInterval);
 };
 
 /**
@@ -560,8 +608,11 @@ const checkLatestVersion = () => {
             " current version: ",
             VERSION_TEXT
           );
+          $("#versionText2").text(
+            "ver. " + VERSION_TEXT + "\nNew Version Available\n" + j.version
+          );
           if (parseFloat(j.version) > parseFloat(VERSION_TEXT)) {
-            window.location.reload(true);
+            if (nuko.reloadAvailableUpdates) window.location.reload(true);
           }
         });
       }
@@ -748,18 +799,15 @@ const initialize = () => {
     });
   }
 
+  /** reload if updates */
   {
-    $("#lightdark").click(() => {
-      console.log("light dark switch");
-      $([".light [class*='-light']", ".dark [class*='-dark']"]).each(
-        (i, ele) => {
-          $(ele).toggleClass("bg-light bg-dark");
-          $(ele).toggleClass("text-light text-dark");
-          $(ele).toggleClass("navbar-light navbar-dark");
-        }
-      );
-      // toggle body class selector
-      $("body").toggleClass("light dark");
+    nuko.reloadAvailableUpdates = localStorage.reloadAvailableUpdates
+      ? localStorage.reloadAvailableUpdates == "true"
+      : false;
+    $("#reloadAvailableUpdate").prop("checked", nuko.reloadAvailableUpdates);
+    $("#reloadAvailableUpdate").on("change", () => {
+      nuko.reloadAvailableUpdates = $("#reloadAvailableUpdate").prop("checked");
+      localStorage.reloadAvailableUpdates = nuko.reloadAvailableUpdates;
     });
   }
 };

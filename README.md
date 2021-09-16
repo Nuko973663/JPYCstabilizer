@@ -6,8 +6,17 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 - dark mode の実装
 - ウォレットアドレスの非表示オプション
+- リーダーボード実装
+- 報酬履歴表示
 
 ## update log
+
+### [v.20210916.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210916.0)
+
+- added favicon: thanks to コイケさん @koikedesuyoo
+- アクティブユーザー数を表示
+- TX 送信時に Activity log に表示する gas 代を gasPrice（gwei）から estimated gas fee（MATIC）に変更
+- Update 時に自動リロードするかのオプションを追加（デフォルト Off）
 
 ### [v.20210915.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210915.1)
 
