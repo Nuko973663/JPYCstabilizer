@@ -9,7 +9,7 @@
     />
     <meta name="description" content="" />
     <meta name="author" content="nuko973663" />
-
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
     <title>JPYC Stabilizer - Dashboard</title>
 
     <!-- Custom fonts for this template-->
@@ -48,15 +48,18 @@
         id="accordionSidebar"
       >
         <!-- Sidebar - Brand -->
-        <a
-          class="sidebar-brand d-flex align-items-center justify-content-center"
-          href="index.html"
-        >
-          <div class="sidebar-brand-icon">
-            <img src="img/jpyc.png" width="45px" /></i>
-          </div>
-          <div class="sidebar-brand-text mx-3">JPYC stabilizer</div>
-        </a>
+        
+          <a
+            class="sidebar-brand d-flex align-items-center justify-content-center"
+            href="index.html"
+          >
+            <div class="sidebar-brand-icon">
+              <img src="img/jpyc.png" width="45px" /></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">JPYC stabilizer</div>
+          </a>
+        
+        
 
         <!-- Divider -->
         <hr class="sidebar-divider my-0" />
@@ -116,7 +119,15 @@
             <span>SushiSwap USDC-JPYC</span></a
           >
         </li>
-        
+
+        <!-- Divider -->
+        <hr class="sidebar-divider" />
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/Nuko973663/JPYCstabilizer/releases/" target="_blank">
+            <i class="fas fa-code-branch"></i>
+            <span id="versionText2">v. xxxx.0</span></a
+          >
+        </li>
 
         <!-- Divider -->
         <hr class="sidebar-divider d-none d-md-block" />
@@ -178,8 +189,12 @@
                 </a>
                 <div class="dropdown-menu">
                   <a class="dropdown-item" href="#" id="gasFastest">fastest</a>
+                  <a class="dropdown-item" href="#" id="gasFaster">faster</a>
                   <a class="dropdown-item" href="#" id="gasFast">fast</a>
                   <a class="dropdown-item" href="#" id="gasStandard">standard</a>
+                  
+                  <a class="dropdown-item" href="#" id="gasSafeLow">safeLow</a>
+                  
                 </div>
               </div>
             </div>
@@ -193,6 +208,17 @@
                     <span class="icon text-white-50">
                         <i class="fas fa-yen-sign"></i>
                     </span>
+                </a>
+            </div>
+
+            <!-- Active Users -->
+            <div>
+                <a href="#" class="btn btn-info btn-icon-split btn-sm mx-2">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-users"></i>
+                    </span>
+                    <span class="text" id="activeUsers">0</span>
+                    
                 </a>
             </div>
 
@@ -242,6 +268,11 @@
                     Autoswap Matic
                   </a>
                   <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#" id="options">
+                    <i class="fas fa-cog fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Options
+                  </a>
+                  <div class="dropdown-divider"></div>
                   <a
                     class="dropdown-item"
                     href="#"
@@ -284,6 +315,7 @@
 
 
               <input type="checkbox" data-toggle="toggle" data-onstyle="danger" id="swapSwitch">
+              
               </div>
             </div>
 
@@ -406,7 +438,7 @@
                     "
                   >
                     <h6 class="m-0 font-weight-bold text-primary">
-                      JPYC/USDC
+                      Chart
                     </h6>
                     
                   </div>
@@ -459,7 +491,7 @@
               <div class="col-xl-6 col-lg-6">
                   <div class="card shadow mb-4">
                       <div class="card-header py-3">
-                          <h6 class="m-0 font-weight-bold text-primary">QuickSwap Pool Liquidity</h6>
+                          <h6 class="m-0 font-weight-bold text-primary">QuickSwap Pool Liquidity <a href="https://info.quickswap.exchange/pair/0x205995421c72dc223f36bbfad78b66eea72d2677" target="_blank"><i class="fas fa-external-link-alt"></i></a></h6>
                       </div>
                       <div class="card-body">
                         
@@ -558,7 +590,7 @@
               <div class="col-xl-6 col-lg-6">
                   <div class="card shadow mb-4">
                       <div class="card-header py-3">
-                          <h6 class="m-0 font-weight-bold text-primary">SushiSwap Pool Liquidity</h6>
+                          <h6 class="m-0 font-weight-bold text-primary">SushiSwap Pool Liquidity <a href="https://analytics-polygon.sushi.com/pairs/0xfbae8e2d04a67c10047d83ee9b8aeffe7f6ea3f4" target="_blank"><i class="fas fa-external-link-alt"></i></a></h6>
                       </div>
                       <div class="card-body">
                       <div class="row no-gutters align-items-center">
@@ -841,6 +873,62 @@
                           <img src="img/USDC.svg" width="40px"  />
                       </span>
                   </a>
+                </div>
+              </div>
+
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal Option -->
+    <div class="modal fade" id="modalOption" tabindex="-1" role="dialog" aria-labelledby="modalOptionLabel" aria-hidden="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="modalOptionLabel">Options</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body" >
+            <div id="modalBody2">
+              
+              <div class="">
+                <div class="form-group">
+                  
+                  
+                  <label for="spreadWidth">Triger spread width: <span id="spread">2.0</span></label>
+                  <div class="row mb-4">
+                    <div class="col"><input type="range" class="form-control-range" id="spreadWidth" min="2" max="10" step="0.1" value="2"></div>
+                  </div>
+                  
+                  <label for="spreadWidth">Minimum exchange amount</label>
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="1000" aria-label="Minimum exchange amount of JPYC" aria-describedby="minJPYClabel" id="swapMinJPYC">
+                    <div class="input-group-append">
+                      <span class="input-group-text" id="minJPYClabel">JPYC</span>
+                    </div>
+                  </div>
+
+                  <div class="input-group mb-4">
+                    <input type="text" class="form-control" value="10" aria-label="Minimum exchange amount of USDC" aria-describedby="minUSDClabel" id="swapMinUSDC">
+                    <div class="input-group-append">
+                      <span class="input-group-text" id="minUSDClabel">USDC</span>
+                    </div>
+                  </div>
+
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="reloadAvailableUpdate">
+                    <label class="form-check-label" for="reloadAvailableUpdate">
+                      Reload if updates available
+                    </label>
+                  </div>
+
                 </div>
               </div>
 

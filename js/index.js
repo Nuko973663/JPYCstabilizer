@@ -5,7 +5,7 @@
 
 "use strict";
 
-const VERSION_TEXT = "ver. 20210914.2";
+const VERSION_TEXT = "20210916.0";
 
 var nuko = {
   gas: 0,
@@ -29,26 +29,35 @@ var nuko = {
   balanceContractUSDC: null,
   swapContract: [],
   swapMaxJPYC: 10000,
+  swapMinJPYC: 1000,
   swapMaxUSDC: 100,
-  swapSlippage: 0.006,
+  swapMinUSDC: 10,
+  swapSlippage: [0.006, 0.0075],
   swapGasMax: 300,
   swapLog: [],
   swapMaxLog: 100,
   upperThreshold: 117.9,
   lowerThreshold: 115.9,
+  target: 0,
+  spread: 2,
   jpyusd: 100,
   jpyusdInterval: 300 * 1000, // 5 min
   jpyusdId: 0,
   flgSwapping: 0,
   wallet: null,
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
-  theDayOfTrueStable: "2021-10-10T10:10:10.000Z",
-  theDayOfNuko: "2021-09-13T10:00:00.000Z",
+  theDayOfTrueStable: "2099-12-31T23:23:59.000Z",
+  theDayOfNuko: "2021-09-14T10:00:00.000Z",
   theDayOfNukoRateDeviate: 117.0 / 110.0,
   contractRate: [],
+  versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
+  keepaliveInterval: 45 * 1000, // interval to get active user number
+  reloadAvailableUpdates: false,
   lowerSwapMaticThreshold: 0,
   swapMaticAmount: 0,
 };
+
+const NUKOAPI = "https://api.nuko.town/";
 
 const NODE_URL =
   "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws";
@@ -97,6 +106,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
   let table = $("#dataTable").DataTable();
   let timestamp = new Date();
   let dt = timestamp.toLocaleString();
+  let gasEstimate = "est. " + (((gas * nuko.gasLimit) / 1e9) * 0.5).toFixed(4);
   let row = table.row.add([
     dt,
     from,
@@ -104,7 +114,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
     nuko.rate[i],
     amount,
     minAmount,
-    gas,
+    gasEstimate,
     "",
   ]);
   row.draw();
@@ -158,7 +168,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
             poolLink + nuko.rate[i],
             amount,
             minAmount,
-            gas,
+            gasEstimate,
             link,
           ])
           .draw();
@@ -195,7 +205,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
         poolLink + nuko.rate[i],
         amount,
         minAmount,
-        gas,
+        gasEstimate,
         link,
       ])
       .draw();
@@ -206,8 +216,55 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
   getBalance();
 };
 
+async function postData(url = "", data = {}) {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: "POST",
+    //mode: "cors",
+    cache: "no-cache",
+    //credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    redirect: "follow",
+    referrerPolicy: "no-referrer",
+    body: JSON.stringify(data),
+  });
+  return response.json(); // parses JSON response into native JavaScript objects
+}
+
 /**
- * watch
+ * calculate SHA-256
+ * @param {*} str
+ * @returns
+ */
+const sha256 = async (str) => {
+  const buff = new Uint8Array([].map.call(str, (c) => c.charCodeAt(0))).buffer;
+  const digest = await crypto.subtle.digest("SHA-256", buff);
+  return [].map
+    .call(new Uint8Array(digest), (x) => ("00" + x.toString(16)).slice(-2))
+    .join("");
+};
+
+const getActiveUsers = async () => {
+  if ($("#swapSwitch").prop("checked")) {
+    const digest = await sha256(nuko.wallet[0].address);
+    let param = { hash: digest };
+    postData(NUKOAPI + "v1/activeUsers", param).then((data) => {
+      //console.log(param, data);
+      $("#activeUsers").text(data.activeUsers);
+    });
+  } else {
+    fetch(NUKOAPI + "v1/activeUsers")
+      .then((response) => response.json())
+      .then((data) => {
+        $("#activeUsers").text(data.activeUsers);
+      });
+  }
+};
+
+/**
+ * watch rate
  */
 const watchRate = async () => {
   await getBalance();
@@ -215,19 +272,26 @@ const watchRate = async () => {
 
   if ($("#swapSwitch").prop("checked")) {
     console.log(nuko.rate);
-    for (let i = 0; i < 2; i++) {
+
+    // QuickSwapとSushiSwapの両方がtrigerされる場合にトライする順番をランダム化する
+    let array = [0, 1];
+    if (Math.random() > 0.5) {
+      array = array.reverse();
+    }
+    array.forEach((i) => {
       if (
         nuko.rate[i] > nuko.upperThreshold &&
-        parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) > 1
+        parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) >
+          nuko.swapMinUSDC
       ) {
         if (!nuko.flgSwapping) {
           nuko.flgSwapping = true;
-          console.log("USDC->JPYC");
+          //console.log("USDC->JPYC");
           let bl =
             parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) * 0.99999;
           let amount = bl > nuko.swapMaxUSDC ? nuko.swapMaxUSDC : bl;
-          let minAmount = amount * nuko.rate[i] * (1.0 - nuko.swapSlippage);
-          //if (i == 1) minAmount = minAmount * 0.9;
+          let minAmount = amount * nuko.rate[i] * (1.0 - nuko.swapSlippage[i]);
+
           goSwap(
             "USDC",
             "JPYC",
@@ -239,15 +303,16 @@ const watchRate = async () => {
         }
       } else if (
         nuko.rate[i] < nuko.lowerThreshold &&
-        parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) > 100
+        parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) > nuko.swapMinJPYC
       ) {
         if (!nuko.flgSwapping) {
           nuko.flgSwapping = true;
-          console.log("JPYC -> USDC");
+          //console.log("JPYC -> USDC");
           let bl = parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) * 0.99999;
           let amount = bl > nuko.swapMaxJPYC ? nuko.swapMaxJPYC : bl;
-          let minAmount = (amount / nuko.rate[i]) * (1.0 - nuko.swapSlippage);
-          // if (i == 1) minAmount = minAmount * 0.9;
+          let minAmount =
+            (amount / nuko.rate[i]) * (1.0 - nuko.swapSlippage[i]);
+
           goSwap(
             "JPYC",
             "USDC",
@@ -258,8 +323,8 @@ const watchRate = async () => {
           );
         }
       }
-    }
-    // 自動Maticスワップ
+    });
+　  // 自動Maticスワップ
     await autoSwapMatic();
   }
   updateLiquidity();
@@ -356,14 +421,22 @@ const updateAllowance = async () => {
 };
 
 const watchGas = async () => {
+  /* yamachang123
+#gasPrice に選択中のnuko.gasPrefを明示。（非同期でGasとSwapは行われているため表記と異なるガス代になるため）
+*/
   nuko.gas = await getGas();
-  $("#gasPrice").text(nuko.gas + " gwei");
+
+  $("#gasPrice").text(nuko.gas + " " + nuko.gasPref);
   $("#gasFastest").text(
     "fastest : " + parseInt(nuko.gasList.fastest) + " gwei"
   );
+  $("#gasFaster").text("faster : " + parseInt(nuko.gasList.faster) + " gwei");
   $("#gasFast").text("fast : " + parseInt(nuko.gasList.fast) + " gwei");
   $("#gasStandard").text(
     "standard : " + parseInt(nuko.gasList.standard) + " gwei"
+  );
+  $("#gasSafeLow").text(
+    "safelow : " + parseInt(nuko.gasList.safeLow) + " gwei"
   );
 };
 
@@ -371,6 +444,8 @@ const getGas = async () => {
   let response = await fetch("https://gasstation-mainnet.matic.network");
   let json = await response.json();
   nuko.gasList = json;
+  nuko.gasList.faster =
+    (parseInt(nuko.gasList.fastest) + parseInt(nuko.gasList.fast)) / 2;
   let gas = parseInt(json[nuko.gasPref]);
   return gas;
 };
@@ -386,11 +461,11 @@ const getJPYUSD = async () => {
     Math.max(0, Date.parse(nuko.theDayOfTrueStable) - Date.now()) /
     (Date.parse(nuko.theDayOfTrueStable) - Date.parse(nuko.theDayOfNuko));
 
-  let targetRate =
-    (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
-
-  nuko.upperThreshold = targetRate + 1.0;
-  nuko.lowerThreshold = targetRate - 1.0;
+  let targetRate = 116.7 + Math.random() * 0.1;
+  // (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
+  nuko.target = targetRate;
+  nuko.upperThreshold = targetRate + nuko.spread / 2;
+  nuko.lowerThreshold = targetRate - nuko.spread / 2;
 
   return jpyusd;
 };
@@ -430,6 +505,8 @@ const approveCoin = async (tokenContractAddress, spenderAddress, id) => {
 };
 
 const updateLimit = () => {
+  nuko.upperThreshold = nuko.target + nuko.spread / 2;
+  nuko.lowerThreshold = nuko.target - nuko.spread / 2;
   $("#upperLimit").text(nuko.upperThreshold.toFixed(2));
   $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
@@ -560,10 +637,11 @@ const autoSwapMatic = async () => {
 }
 
 /**
- * main
+ * main function
  */
 const main = () => {
-  $("#versionText").text(VERSION_TEXT);
+  $("#versionText").text("ver. " + VERSION_TEXT);
+  $("#versionText2").text("ver. " + VERSION_TEXT);
   initialize();
   nuko.balanceContractJPYC = new web3.eth.Contract(
     abiERC20,
@@ -592,8 +670,16 @@ const main = () => {
 
   watchJPYUSD();
   nuko.jpyusdId = setInterval(watchJPYUSD, nuko.jpyusdInterval);
+
+  nuko.verId = setInterval(checkLatestVersion, nuko.versionInterval);
+
+  getActiveUsers();
+  setInterval(getActiveUsers, nuko.keepaliveInterval);
 };
 
+/**
+ * update wallet address
+ */
 const updateAccount = () => {
   if (nuko.wallet == null) {
     $("#wallet").text("Create or Import Wallet");
@@ -647,6 +733,32 @@ const updateLiquidity = () => {
     nuko.rateReserveJPYC[1].toLocaleString(undefined, {
       maximumFractionDigits: 0,
     }) + " JPYC"
+  );
+};
+
+/**
+ * check if latest version is available. then reload.
+ */
+const checkLatestVersion = () => {
+  fetch("https://nuko973663.github.io/JPYCstabilizer/version.json").then(
+    (res) => {
+      if (res.ok) {
+        res.json().then((j) => {
+          console.log(
+            "latest version: ",
+            j.version,
+            " current version: ",
+            VERSION_TEXT
+          );
+          $("#versionText2").text(
+            "ver. " + VERSION_TEXT + "\nNew Version Available\n" + j.version
+          );
+          if (parseFloat(j.version) > parseFloat(VERSION_TEXT)) {
+            if (nuko.reloadAvailableUpdates) window.location.reload(true);
+          }
+        });
+      }
+    }
   );
 };
 
@@ -728,6 +840,17 @@ const initialize = () => {
     );
   });
 
+  $("#options").on("click", () => {
+    $("#modalOption").modal("show");
+  });
+
+  $(document).on("input", "#spreadWidth", function () {
+    nuko.spread = parseFloat($(this).val());
+    localStorage.spread = nuko.spread;
+    $("#spread").text(nuko.spread.toFixed(1));
+    updateLimit();
+  });
+
   $("#createNewWallet").on("click", () => {
     web3.eth.accounts.wallet.clear();
     nuko.wallet = web3.eth.accounts.wallet.create(1);
@@ -770,6 +893,11 @@ const initialize = () => {
     localStorage.gasPref = nuko.gasPref;
     watchGas();
   });
+  $("#gasFaster").on("click", () => {
+    nuko.gasPref = "faster";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
   $("#gasFast").on("click", () => {
     nuko.gasPref = "fast";
     localStorage.gasPref = nuko.gasPref;
@@ -808,6 +936,46 @@ const initialize = () => {
   table.column("0:visible").order("dsc").draw();
 
   updateAllowance();
+
+  nuko.spread = parseFloat(localStorage.spread ? localStorage.spread : 2);
+  $("#spreadWidth").val(nuko.spread);
+  $("#spread").text(nuko.spread.toFixed(1));
+
+  /**
+   * minimum amount of swaping
+   */
+  {
+    nuko.swapMinJPYC = parseFloat(
+      localStorage.swapMinJPYC ? localStorage.swapMinJPYC : 1000.0
+    );
+    nuko.swapMinUSDC = parseFloat(
+      localStorage.swapMinUSDC ? localStorage.swapMinUSDC : 10.0
+    );
+    $("#swapMinJPYC").val(nuko.swapMinJPYC);
+    $("#swapMinUSDC").val(nuko.swapMinUSDC);
+    $("#swapMinJPYC").on("change", () => {
+      nuko.swapMinJPYC = parseFloat($("#swapMinJPYC").val());
+      localStorage.swapMinJPYC = nuko.swapMinJPYC;
+      console.log(nuko.swapMinJPYC);
+    });
+    $("#swapMinUSDC").on("change", () => {
+      nuko.swapMinUSDC = parseFloat($("#swapMinUSDC").val());
+      localStorage.swapMinUSDC = nuko.swapMinUSDC;
+      console.log(nuko.swapMinUSDC);
+    });
+  }
+
+  /** reload if updates */
+  {
+    nuko.reloadAvailableUpdates = localStorage.reloadAvailableUpdates
+      ? localStorage.reloadAvailableUpdates == "true"
+      : false;
+    $("#reloadAvailableUpdate").prop("checked", nuko.reloadAvailableUpdates);
+    $("#reloadAvailableUpdate").on("change", () => {
+      nuko.reloadAvailableUpdates = $("#reloadAvailableUpdate").prop("checked");
+      localStorage.reloadAvailableUpdates = nuko.reloadAvailableUpdates;
+    });
+  }
 };
 
 // getReserves関数のABI
