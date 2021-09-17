@@ -46,8 +46,8 @@ var nuko = {
   theDayOfNuko: "2021-09-13T10:00:00.000Z",
   theDayOfNukoRateDeviate: 117.0 / 110.0,
   contractRate: [],
-  minMaticStd: 2,
-  swapMaticAmount: 1,
+  lowerSwapMaticThreshold: 0,
+  swapMaticAmount: 0,
 };
 
 const NODE_URL =
@@ -435,6 +435,7 @@ const updateLimit = () => {
 };
 
 const autoSwapMatic = async () => {
+  console.log('=== autoSwapMatic')
   const maticVal = await(async()=>{
     let m = parseFloat(web3.utils.fromWei(nuko.balanceMATIC));
     m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
@@ -442,10 +443,10 @@ const autoSwapMatic = async () => {
   })();
 
   // do nothing
-  if(maticVal > nuko.minMaticStd){
+  if(maticVal > nuko.lowerSwapMaticThreshold){
     return;
   }
-  if(minMaticStd === 0 || swapMaticAmount == 0){
+  if(nuko.lowerSwapMaticThreshold == 0 || nuko.swapMaticAmount == 0){
     return;
   }
 
@@ -517,19 +518,19 @@ const autoSwapMatic = async () => {
     .getReserves()
     .call()
     .then((values) => { // 0..matic 1..usdc
-      usdcPrice = Math.floor( (values[1] / (values[0] / 10**12)) * Math.pow(10, 2) ) / Math.pow(10, 2);
-      usdcPrice = usdcPrice * swapMaticAmount
+      usdcPrice = Math.floor( (values[1] / (values[0]/10**12))  * Math.pow(10, 4) ) / Math.pow(10, 4);
+      usdcPrice = usdcPrice * nuko.swapMaticAmount
       rateReserveMatic = values[0] / 10 ** decimal["MATIC"]
       rateReserveUsdc = values[1] / 10 ** decimal["USDC"]
     });
     // getRate
-    let rateRaw = rateReserveUSDC / rateReserveMatic
-    let rate = Math.floor(rateRaw * Math.pow(10, 2)) / Math.pow(10, 2);
+    let rateRaw = rateReserveUsdc / rateReserveMatic
+    let rate = Math.floor(rateRaw * Math.pow(10, 4)) / Math.pow(10, 4);
     // watchRate
     let maticUsdcMinAmout = (usdcPrice / rate) * (1.0 - nuko.swapSlippage);
     // goSwap
     let amountIn = Math.floor(usdcPrice * 10 ** decimal["USDC"]) / 10 ** decimal["USDC"]
-    amountIn = web3.utils.toWei(amountIn.toString())
+    amountIn = web3.utils.toWei(amountIn.toString(), "mwei")
     let amountOut = Math.floor(maticUsdcMinAmout * 10 ** decimal["MATIC"]) / 10 ** decimal["MATIC"]
     amountOut = web3.utils.toWei(amountOut.toString())
 
@@ -655,6 +656,16 @@ const initialize = () => {
   }
   nuko.gasPref = localStorage.gasPref;
 
+  if (localStorage.lowerSwapMaticThreshold == undefined) {
+    localStorage.lowerSwapMaticThreshold = "0";
+  }
+  nuko.lowerSwapMaticThreshold = parseFloat(localStorage.lowerSwapMaticThreshold)
+
+  if (localStorage.swapMaticAmount == undefined) {
+    localStorage.swapMaticAmount = "0";
+  }
+  nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount)
+
   try {
     web3.eth.accounts.wallet.load(nuko.password);
     nuko.wallet = web3.eth.accounts.wallet;
@@ -680,6 +691,8 @@ const initialize = () => {
     $("#modalApprove").modal("show");
   });
   $("#autoswapMatic").on("click", () => {
+    $('#lowerSwapMaticThreshold').val(nuko.lowerSwapMaticThreshold)
+    $('#swapMaticAmount').val(nuko.swapMaticAmount)
     $("#modalAutoswapMatic").modal("show");
   });
   $("#approveJPYC0").on("click", () => {
@@ -768,10 +781,13 @@ const initialize = () => {
     watchGas();
   });
   $("#submitAutoSwap").on("click", ()=>{
-    console.log("submitAutoSwap")
     let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val()
-    let amountOfMatic = $("#amountOfMatic").val()
-    console.log([lowerSwapMaticThreshold, amountOfMatic])
+    let swapMaticAmount = $("#swapMaticAmount").val()
+    localStorage.lowerSwapMaticThreshold = lowerSwapMaticThreshold? lowerSwapMaticThreshold: '0';
+    localStorage.swapMaticAmount = swapMaticAmount? swapMaticAmount: '0';
+    nuko.lowerSwapMaticThreshold = parseFloat(localStorage.lowerSwapMaticThreshold)
+    nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount)
+    $("#modalAutoswapMatic").modal('hide');
   })
 
   updateLimit();
