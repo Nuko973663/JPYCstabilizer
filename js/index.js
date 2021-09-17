@@ -462,7 +462,7 @@ const autoSwapMatic = async () => {
   })();
 
   if(jpycVal > 1){
-    // JPYCをMATICにする
+    // JPYC => MATIC
     let jpycPrice = 0;
     let rateReserveMatic = 0;
     let rateReserveJpyc = 0;
@@ -509,7 +509,7 @@ const autoSwapMatic = async () => {
     }
     await swap()
   }else if(usdcVal > 1){
-    // USDCをMATICにする
+    // USDC => MATIC
     let usdcPrice = 0;
     let rateReserveMatic = 0;
     let rateReserveUsdc = 0;
