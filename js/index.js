@@ -512,7 +512,6 @@ const updateLimit = () => {
 };
 
 const autoSwapMatic = async () => {
-  console.log('=== autoSwapMatic')
   const maticVal = await(async()=>{
     let m = parseFloat(web3.utils.fromWei(nuko.balanceMATIC));
     m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
