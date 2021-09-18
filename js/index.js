@@ -5,7 +5,7 @@
 
 "use strict";
 
-const VERSION_TEXT = "20210916.0";
+const VERSION_TEXT = "20210918.0";
 
 var nuko = {
   gas: 0,
@@ -22,6 +22,8 @@ var nuko = {
   rateReserveUSDC: [],
   rateReserveJPYC: [],
   rateReserveMATIC: [],
+  allowanceUSDC: [],
+  allowanceJPYC: [],
   balanceJPYC: 0,
   balanceUSDC: 0,
   balanceMATIC: 0,
@@ -51,16 +53,21 @@ var nuko = {
   theDayOfNukoRateDeviate: 117.0 / 110.0,
   contractRate: [],
   versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
+  versionAlertFlag: false,
   keepaliveInterval: 45 * 1000, // interval to get active user number
   reloadAvailableUpdates: false,
   lowerSwapMaticThreshold: 0,
   swapMaticAmount: 0,
+  currentWeb3Provider: 0,
 };
 
 const NUKOAPI = "https://api.nuko.town/";
 
-const NODE_URL =
-  "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws";
+const NODE_URL = [
+  "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws",
+  "https://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet",
+  "https://polygon-rpc.com",
+];
 
 const contractAddress = {
   JPYC: "0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c",
@@ -71,13 +78,13 @@ const contractAddress = {
   routerSushi: "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
   pairSushi: "0xfbae8e2d04a67c10047d83ee9b8aeffe7f6ea3f4",
   pairMATIC_JPYC: "0x7105f0e4a000fae92b1299734b18e7d375968371",
-  pairMATIC_USDC: "0x6e7a5fafcec6bb1e78bae2a1f0b612012bf14827"
+  pairMATIC_USDC: "0x6e7a5fafcec6bb1e78bae2a1f0b612012bf14827",
 };
 
 const decimal = {
   JPYC: 18,
   USDC: 6,
-  MATIC: 18
+  MATIC: 18,
 };
 
 const options = {
@@ -95,8 +102,8 @@ const options = {
   },
 };
 
-const provider = new Web3.providers.WebsocketProvider(NODE_URL, options);
-const web3 = new Web3(provider);
+var provider = new Web3.providers.WebsocketProvider(NODE_URL[0], options);
+var web3 = new Web3(provider);
 
 /**
  * goSwap
@@ -282,7 +289,8 @@ const watchRate = async () => {
       if (
         nuko.rate[i] > nuko.upperThreshold &&
         parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei")) >
-          nuko.swapMinUSDC
+          nuko.swapMinUSDC &&
+        parseInt(nuko.allowanceUSDC[i]) > 0
       ) {
         if (!nuko.flgSwapping) {
           nuko.flgSwapping = true;
@@ -303,7 +311,8 @@ const watchRate = async () => {
         }
       } else if (
         nuko.rate[i] < nuko.lowerThreshold &&
-        parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) > nuko.swapMinJPYC
+        parseFloat(web3.utils.fromWei(nuko.balanceJPYC)) > nuko.swapMinJPYC &&
+        parseInt(nuko.allowanceJPYC[i]) > 0
       ) {
         if (!nuko.flgSwapping) {
           nuko.flgSwapping = true;
@@ -323,8 +332,7 @@ const watchRate = async () => {
           );
         }
       }
-    });
-　  // 自動Maticスワップ
+    }); // 自動Maticスワップ
     await autoSwapMatic();
   }
   updateLiquidity();
@@ -362,7 +370,11 @@ const getBalance = async () => {
     nuko.balanceMATIC = balance;
     let m = parseFloat(web3.utils.fromWei(balance));
     m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
-    $("#balanceMATIC").text(m);
+    $("#balanceMATIC").text(
+      m.toLocaleString(undefined, {
+        maximumFractionDigits: 4,
+      })
+    );
   });
 
   nuko.balanceContractJPYC.methods
@@ -372,7 +384,11 @@ const getBalance = async () => {
       nuko.balanceJPYC = balance;
       let m = parseFloat(web3.utils.fromWei(balance));
       m = Math.floor(m * Math.pow(10, 2)) / Math.pow(10, 2);
-      $("#balanceJPYC").text(m);
+      $("#balanceJPYC").text(
+        m.toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        })
+      );
     });
   nuko.balanceContractUSDC.methods
     .balanceOf(nuko.wallet[0].address)
@@ -381,39 +397,55 @@ const getBalance = async () => {
       nuko.balanceUSDC = balance;
       let m = parseFloat(web3.utils.fromWei(balance, "mwei"));
       m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
-      $("#balanceUSDC").text(m);
+      $("#balanceUSDC").text(
+        m.toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        })
+      );
       return balance;
     });
 };
 
+/**
+ * get amount of token allowance for specified smart contract
+ * @param {*} contractAddress
+ * @param {*} routerAddress
+ * @param {*} button
+ * @returns
+ */
 const getAllowance = async (contractAddress, routerAddress, button) => {
   let allowanceContract = new web3.eth.Contract(abiERC20, contractAddress);
-
+  let allowance = 0;
   await allowanceContract.methods
     .allowance(nuko.wallet[0].address, routerAddress)
     .call()
     .then((amount) => {
       if (parseInt(amount) > 0) $(button).addClass("disabled");
+      allowance = amount;
     });
+  return allowance;
 };
 
+/**
+ * get allowance for USDC and JPYC and update modal buttons
+ */
 const updateAllowance = async () => {
-  getAllowance(
+  nuko.allowanceUSDC[0] = await getAllowance(
     contractAddress.USDC,
     contractAddress.routerQuick,
     "#approveUSDC0"
   );
-  getAllowance(
+  nuko.allowanceJPYC[0] = await getAllowance(
     contractAddress.JPYC,
     contractAddress.routerQuick,
     "#approveJPYC0"
   );
-  getAllowance(
+  nuko.allowanceJPYC[1] = await getAllowance(
     contractAddress.JPYC,
     contractAddress.routerSushi,
     "#approveJPYC1"
   );
-  getAllowance(
+  nuko.allowanceUSDC[1] = await getAllowance(
     contractAddress.USDC,
     contractAddress.routerSushi,
     "#approveUSDC1"
@@ -512,128 +544,139 @@ const updateLimit = () => {
 };
 
 const autoSwapMatic = async () => {
-  const maticVal = await(async()=>{
+  const maticVal = await (async () => {
     let m = parseFloat(web3.utils.fromWei(nuko.balanceMATIC));
     m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
     return m;
   })();
 
   // do nothing
-  if(maticVal > nuko.lowerSwapMaticThreshold){
+  if (maticVal > nuko.lowerSwapMaticThreshold) {
     return;
   }
-  if(nuko.lowerSwapMaticThreshold == 0 || nuko.swapMaticAmount == 0){
+  if (nuko.lowerSwapMaticThreshold == 0 || nuko.swapMaticAmount == 0) {
     return;
   }
 
-  const jpycVal = await(async()=>{
+  const jpycVal = await (async () => {
     let m = parseFloat(web3.utils.fromWei(nuko.balanceJPYC));
     m = Math.floor(m * Math.pow(10, 2)) / Math.pow(10, 2);
     return m;
   })();
-  const usdcVal = await(async()=>{
+  const usdcVal = await (async () => {
     let m = parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei"));
     m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
     return m;
   })();
 
-  if(jpycVal > 1){
+  if (jpycVal > 1) {
     // JPYC => MATIC
     let jpycPrice = 0;
     let rateReserveMatic = 0;
     let rateReserveJpyc = 0;
     let contract = new web3.eth.Contract(abi, contractAddress.pairMATIC_JPYC);
     await contract.methods
-    .getReserves()
-    .call()
-    .then((values) => { // 0..matic 1..jpyc
-      jpycPrice = Math.floor( (values[1] / values[0]) * Math.pow(10, 2) ) / Math.pow(10, 2);
-      jpycPrice = jpycPrice * swapMaticAmount
-      rateReserveMatic = values[0] / 10 ** decimal["MATIC"]
-      rateReserveJpyc = values[1] / 10 ** decimal["JPYC"]
-    });
+      .getReserves()
+      .call()
+      .then((values) => {
+        // 0..matic 1..jpyc
+        jpycPrice =
+          Math.floor((values[1] / values[0]) * Math.pow(10, 2)) /
+          Math.pow(10, 2);
+        jpycPrice = jpycPrice * swapMaticAmount;
+        rateReserveMatic = values[0] / 10 ** decimal["MATIC"];
+        rateReserveJpyc = values[1] / 10 ** decimal["JPYC"];
+      });
     // getRate
-    let rateRaw = rateReserveJpyc / rateReserveMatic
+    let rateRaw = rateReserveJpyc / rateReserveMatic;
     let rate = Math.floor(rateRaw * Math.pow(10, 2)) / Math.pow(10, 2);
     // watchRate
     let maticJpycMinAmout = (jpycPrice / rate) * (1.0 - nuko.swapSlippage);
     // goSwap
-    let amountIn = Math.floor(jpycPrice * 10 ** decimal["JPYC"]) / 10 ** decimal["JPYC"]
-    amountIn = web3.utils.toWei(amountIn.toString())
-    let amountOut = Math.floor(maticJpycMinAmout * 10 ** decimal["MATIC"]) / 10 ** decimal["MATIC"]
-    amountOut = web3.utils.toWei(amountOut.toString())
+    let amountIn =
+      Math.floor(jpycPrice * 10 ** decimal["JPYC"]) / 10 ** decimal["JPYC"];
+    amountIn = web3.utils.toWei(amountIn.toString());
+    let amountOut =
+      Math.floor(maticJpycMinAmout * 10 ** decimal["MATIC"]) /
+      10 ** decimal["MATIC"];
+    amountOut = web3.utils.toWei(amountOut.toString());
 
-    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax
-    const swap = async()=>{
-      try{
+    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax;
+    const swap = async () => {
+      try {
         await nuko.swapContract[0].methods
-        .swapExactTokensForETH(
-          web3.utils.toHex(amountIn),
-          web3.utils.toHex(amountOut),
-          [contractAddress["JPYC"], contractAddress["MATIC"]],
-          nuko.wallet[0].address,
-          Math.floor(Date.now() / 1000) + 60 * 5
-        )
-        .send({
-          from: nuko.wallet[0].address,
-          gasLimit: web3.utils.toHex(nuko.gasLimit),
-          gasPrice: web3.utils.toHex(gas * 1e9),
-        })
-      }catch(e){
-        console.error(e)
+          .swapExactTokensForETH(
+            web3.utils.toHex(amountIn),
+            web3.utils.toHex(amountOut),
+            [contractAddress["JPYC"], contractAddress["MATIC"]],
+            nuko.wallet[0].address,
+            Math.floor(Date.now() / 1000) + 60 * 5
+          )
+          .send({
+            from: nuko.wallet[0].address,
+            gasLimit: web3.utils.toHex(nuko.gasLimit),
+            gasPrice: web3.utils.toHex(gas * 1e9),
+          });
+      } catch (e) {
+        console.error(e);
       }
-    }
-    await swap()
-  }else if(usdcVal > 1){
+    };
+    await swap();
+  } else if (usdcVal > 1) {
     // USDC => MATIC
     let usdcPrice = 0;
     let rateReserveMatic = 0;
     let rateReserveUsdc = 0;
     let contract = new web3.eth.Contract(abi, contractAddress.pairMATIC_USDC);
     await contract.methods
-    .getReserves()
-    .call()
-    .then((values) => { // 0..matic 1..usdc
-      usdcPrice = Math.floor( (values[1] / (values[0]/10**12))  * Math.pow(10, 4) ) / Math.pow(10, 4);
-      usdcPrice = usdcPrice * nuko.swapMaticAmount
-      rateReserveMatic = values[0] / 10 ** decimal["MATIC"]
-      rateReserveUsdc = values[1] / 10 ** decimal["USDC"]
-    });
+      .getReserves()
+      .call()
+      .then((values) => {
+        // 0..matic 1..usdc
+        usdcPrice =
+          Math.floor((values[1] / (values[0] / 10 ** 12)) * Math.pow(10, 4)) /
+          Math.pow(10, 4);
+        usdcPrice = usdcPrice * nuko.swapMaticAmount;
+        rateReserveMatic = values[0] / 10 ** decimal["MATIC"];
+        rateReserveUsdc = values[1] / 10 ** decimal["USDC"];
+      });
     // getRate
-    let rateRaw = rateReserveUsdc / rateReserveMatic
+    let rateRaw = rateReserveUsdc / rateReserveMatic;
     let rate = Math.floor(rateRaw * Math.pow(10, 4)) / Math.pow(10, 4);
     // watchRate
     let maticUsdcMinAmout = (usdcPrice / rate) * (1.0 - nuko.swapSlippage);
     // goSwap
-    let amountIn = Math.floor(usdcPrice * 10 ** decimal["USDC"]) / 10 ** decimal["USDC"]
-    amountIn = web3.utils.toWei(amountIn.toString(), "mwei")
-    let amountOut = Math.floor(maticUsdcMinAmout * 10 ** decimal["MATIC"]) / 10 ** decimal["MATIC"]
-    amountOut = web3.utils.toWei(amountOut.toString())
+    let amountIn =
+      Math.floor(usdcPrice * 10 ** decimal["USDC"]) / 10 ** decimal["USDC"];
+    amountIn = web3.utils.toWei(amountIn.toString(), "mwei");
+    let amountOut =
+      Math.floor(maticUsdcMinAmout * 10 ** decimal["MATIC"]) /
+      10 ** decimal["MATIC"];
+    amountOut = web3.utils.toWei(amountOut.toString());
 
-    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax
-    const swap = async()=>{
-      try{
+    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax;
+    const swap = async () => {
+      try {
         await nuko.swapContract[0].methods
-        .swapExactTokensForETH(
-          web3.utils.toHex(amountIn),
-          web3.utils.toHex(amountOut),
-          [contractAddress["USDC"], contractAddress["MATIC"]],
-          nuko.wallet[0].address,
-          Math.floor(Date.now() / 1000) + 60 * 5
-        )
-        .send({
-          from: nuko.wallet[0].address,
-          gasLimit: web3.utils.toHex(nuko.gasLimit),
-          gasPrice: web3.utils.toHex(gas * 1e9),
-        })
-      }catch(e){
-        console.error(e)
+          .swapExactTokensForETH(
+            web3.utils.toHex(amountIn),
+            web3.utils.toHex(amountOut),
+            [contractAddress["USDC"], contractAddress["MATIC"]],
+            nuko.wallet[0].address,
+            Math.floor(Date.now() / 1000) + 60 * 5
+          )
+          .send({
+            from: nuko.wallet[0].address,
+            gasLimit: web3.utils.toHex(nuko.gasLimit),
+            gasPrice: web3.utils.toHex(gas * 1e9),
+          });
+      } catch (e) {
+        console.error(e);
       }
-    }
-    await swap()
+    };
+    await swap();
   }
-
-}
+};
 
 /**
  * main function
@@ -674,6 +717,15 @@ const main = () => {
 
   getActiveUsers();
   setInterval(getActiveUsers, nuko.keepaliveInterval);
+
+  setInterval(() => {
+    if (!web3.currentProvider.connected) {
+      nuko.currentWeb3Provider =
+        (nuko.currentWeb3Provider + 1) % NODE_URL.length;
+      web3.setProvider(NODE_URL[nuko.currentWeb3Provider]);
+      console.log("change RPC node to ", NODE_URL[nuko.currentWeb3Provider]);
+    }
+  }, 15 * 1000);
 };
 
 /**
@@ -749,16 +801,33 @@ const checkLatestVersion = () => {
             " current version: ",
             VERSION_TEXT
           );
-          $("#versionText2").text(
-            "ver. " + VERSION_TEXT + "\nNew Version Available\n" + j.version
-          );
+
           if (parseFloat(j.version) > parseFloat(VERSION_TEXT)) {
+            if (!nuko.versionAlertFlag) {
+              let message = `New version ${j.version} available!`;
+              showAlert(message);
+              nuko.versionAlertFlag = true;
+            }
             if (nuko.reloadAvailableUpdates) window.location.reload(true);
           }
         });
       }
     }
   );
+};
+
+/**
+ * Show alert message
+ * @param {string} message
+ */
+const showAlert = (message) => {
+  let txt = `  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    ${message}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>`;
+  $("#alert").append(txt);
 };
 
 const initialize = () => {
@@ -770,12 +839,14 @@ const initialize = () => {
   if (localStorage.lowerSwapMaticThreshold == undefined) {
     localStorage.lowerSwapMaticThreshold = "0";
   }
-  nuko.lowerSwapMaticThreshold = parseFloat(localStorage.lowerSwapMaticThreshold)
+  nuko.lowerSwapMaticThreshold = parseFloat(
+    localStorage.lowerSwapMaticThreshold
+  );
 
   if (localStorage.swapMaticAmount == undefined) {
     localStorage.swapMaticAmount = "0";
   }
-  nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount)
+  nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount);
 
   try {
     web3.eth.accounts.wallet.load(nuko.password);
@@ -802,8 +873,8 @@ const initialize = () => {
     $("#modalApprove").modal("show");
   });
   $("#autoswapMatic").on("click", () => {
-    $('#lowerSwapMaticThreshold').val(nuko.lowerSwapMaticThreshold)
-    $('#swapMaticAmount').val(nuko.swapMaticAmount)
+    $("#lowerSwapMaticThreshold").val(nuko.lowerSwapMaticThreshold);
+    $("#swapMaticAmount").val(nuko.swapMaticAmount);
     $("#modalAutoswapMatic").modal("show");
   });
   $("#approveJPYC0").on("click", () => {
@@ -907,15 +978,19 @@ const initialize = () => {
     localStorage.gasPref = nuko.gasPref;
     watchGas();
   });
-  $("#submitAutoSwap").on("click", ()=>{
-    let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val()
-    let swapMaticAmount = $("#swapMaticAmount").val()
-    localStorage.lowerSwapMaticThreshold = lowerSwapMaticThreshold? lowerSwapMaticThreshold: '0';
-    localStorage.swapMaticAmount = swapMaticAmount? swapMaticAmount: '0';
-    nuko.lowerSwapMaticThreshold = parseFloat(localStorage.lowerSwapMaticThreshold)
-    nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount)
-    $("#modalAutoswapMatic").modal('hide');
-  })
+  $("#submitAutoSwap").on("click", () => {
+    let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val();
+    let swapMaticAmount = $("#swapMaticAmount").val();
+    localStorage.lowerSwapMaticThreshold = lowerSwapMaticThreshold
+      ? lowerSwapMaticThreshold
+      : "0";
+    localStorage.swapMaticAmount = swapMaticAmount ? swapMaticAmount : "0";
+    nuko.lowerSwapMaticThreshold = parseFloat(
+      localStorage.lowerSwapMaticThreshold
+    );
+    nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount);
+    $("#modalAutoswapMatic").modal("hide");
+  });
 
   updateLimit();
 
@@ -1094,40 +1169,40 @@ const abiUniswapV2Router = [
       {
         internalType: "uint256",
         name: "amountIn",
-        type: "uint256"
+        type: "uint256",
       },
       {
         internalType: "uint256",
         name: "amountOutMin",
-        type: "uint256"
+        type: "uint256",
       },
       {
         internalType: "address[]",
         name: "path",
-        type: "address[]"
+        type: "address[]",
       },
       {
         internalType: "address",
         name: "to",
-        type: "address"
+        type: "address",
       },
       {
         internalType: "uint256",
         name: "deadline",
-        type: "uint256"
-      }
+        type: "uint256",
+      },
     ],
     name: "swapExactTokensForETH",
     outputs: [
       {
         internalType: "uint256[]",
         name: "amounts",
-        type: "uint256[]"
-      }
+        type: "uint256[]",
+      },
     ],
     stateMutability: "nonpayable",
-    type: "function"
-  }
+    type: "function",
+  },
 ];
 
 main();

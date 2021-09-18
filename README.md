@@ -8,8 +8,17 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 - ウォレットアドレスの非表示オプション
 - リーダーボード実装
 - 報酬履歴表示
+- community balance の表示（安定させ隊のトータル軍資金 USDC, JPYC）
+- スタビの APR 表示
+- 流動性プールの APR 表示
 
 ## update log
+
+### [v.20210918.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210918.0)
+
+- gas 代の MATIC の自動補充機能を追加（デフォルトオフ）: thanks to medy.nim さん @dumblepytech1
+- RPC node から切断された場合に他の RPC ノードに自動的に接続する機能を追加
+- [bugfix] token を approve していない状態で自動スワップを on にしても swap がトリガーされないように変更
 
 ### [v.20210916.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210916.0)
 
