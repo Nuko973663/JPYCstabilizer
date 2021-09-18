@@ -268,6 +268,10 @@
                     <i class="fas fa-cog fa-sm fa-fw mr-2 text-gray-400"></i>
                     Options
                   </a>
+                  <a class="dropdown-item" href="#" id="autoswapMatic">
+                    <i class="fas fa-gas-pump fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Autoswap Matic
+                  </a>
                   <div class="dropdown-divider"></div>
                   <a
                     class="dropdown-item"
@@ -289,9 +293,17 @@
           <!-- Begin Page Content -->
           <div class="container-fluid" id="containerBody">
             <!-- Page Heading -->
+
+            <div id="alert"></div>
+
+
             <div
               class="d-sm-flex align-items-center justify-content-between mb-4"
             >
+
+
+
+
               <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
 
               <div class="text-right">
@@ -778,8 +790,6 @@
                         <label for="privateKey">Private Key</label>
                         <input type="text" class="form-control" id="privateKey" placeholder="" readonly>
                     </div>
-
-                    
                 </div>
 
                 <a href="#" class="btn btn-primary btn-icon-split" id="import">
@@ -940,6 +950,48 @@
     </div>
 
 
+    <!-- Modal Autoswap Matic -->
+    <div class="modal fade" id="modalAutoswapMatic" tabindex="-1" role="dialog" aria-labelledby="modalAutoswapMatic" aria-hidden="false">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" >Autoswap Matic</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body" >
+              <div id="modalBody2">
+                <div>Automatically swap JPYC or USDC for MATIC when the balance MATIC for gas runderruns.</div>
+                <div class="pt-3">
+                    <div class="form-group">
+                        <label for="privateKey">Lower limit</label>
+                        <input type="number" class="form-control" id="lowerSwapMaticThreshold" placeholder="">
+                    </div>
+                    <div class="form-group">
+                      <label for="privateKey">Amount of MATIC</label>
+                      <input type="number" class="form-control" id="swapMaticAmount" placeholder="">
+                  </div>
+                </div>
+
+                
+              </div>
+          </div>
+          
+          <div class="modal-footer">
+              <a href="#" class="btn btn-primary btn-icon-split" id="submitAutoSwap">
+                  <span class="icon text-white-50">
+                      <i class="fas fa-arrow-right"></i>
+                  </span>
+                  <span class="text">Save</span>
+              </a>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+          </div>
+      </div>
+      </div>
+
+
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -960,5 +1012,6 @@
     <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
 
     <script src="js/index.min.js"></script>
+    <!-- <script src="js/index.js"></script> -->
   </body>
 </html>
