@@ -21,6 +21,7 @@ var nuko = {
   rateContract: null,
   rateReserveUSDC: [],
   rateReserveJPYC: [],
+  rateReserveMATIC: [],
   balanceJPYC: 0,
   balanceUSDC: 0,
   balanceMATIC: 0,
@@ -52,6 +53,8 @@ var nuko = {
   versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
   keepaliveInterval: 45 * 1000, // interval to get active user number
   reloadAvailableUpdates: false,
+  lowerSwapMaticThreshold: 0,
+  swapMaticAmount: 0,
 };
 
 const NUKOAPI = "https://api.nuko.town/";
@@ -62,15 +65,19 @@ const NODE_URL =
 const contractAddress = {
   JPYC: "0x6ae7dfc73e0dde2aa99ac063dcf7e8a63265108c",
   USDC: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+  MATIC: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
   routerQuick: "0xa5e0829caced8ffdd4de3c43696c57f7d7a678ff",
   pairQuick: "0x205995421C72Dc223F36BbFad78B66EEa72d2677",
   routerSushi: "0x1b02da8cb0d097eb8d57a175b88c7d8b47997506",
   pairSushi: "0xfbae8e2d04a67c10047d83ee9b8aeffe7f6ea3f4",
+  pairMATIC_JPYC: "0x7105f0e4a000fae92b1299734b18e7d375968371",
+  pairMATIC_USDC: "0x6e7a5fafcec6bb1e78bae2a1f0b612012bf14827"
 };
 
 const decimal = {
   JPYC: 18,
   USDC: 6,
+  MATIC: 18
 };
 
 const options = {
@@ -317,6 +324,8 @@ const watchRate = async () => {
         }
       }
     });
+　  // 自動Maticスワップ
+    await autoSwapMatic();
   }
   updateLiquidity();
 };
@@ -502,6 +511,130 @@ const updateLimit = () => {
   $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
 
+const autoSwapMatic = async () => {
+  const maticVal = await(async()=>{
+    let m = parseFloat(web3.utils.fromWei(nuko.balanceMATIC));
+    m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
+    return m;
+  })();
+
+  // do nothing
+  if(maticVal > nuko.lowerSwapMaticThreshold){
+    return;
+  }
+  if(nuko.lowerSwapMaticThreshold == 0 || nuko.swapMaticAmount == 0){
+    return;
+  }
+
+  const jpycVal = await(async()=>{
+    let m = parseFloat(web3.utils.fromWei(nuko.balanceJPYC));
+    m = Math.floor(m * Math.pow(10, 2)) / Math.pow(10, 2);
+    return m;
+  })();
+  const usdcVal = await(async()=>{
+    let m = parseFloat(web3.utils.fromWei(nuko.balanceUSDC, "mwei"));
+    m = Math.floor(m * Math.pow(10, 4)) / Math.pow(10, 4);
+    return m;
+  })();
+
+  if(jpycVal > 1){
+    // JPYC => MATIC
+    let jpycPrice = 0;
+    let rateReserveMatic = 0;
+    let rateReserveJpyc = 0;
+    let contract = new web3.eth.Contract(abi, contractAddress.pairMATIC_JPYC);
+    await contract.methods
+    .getReserves()
+    .call()
+    .then((values) => { // 0..matic 1..jpyc
+      jpycPrice = Math.floor( (values[1] / values[0]) * Math.pow(10, 2) ) / Math.pow(10, 2);
+      jpycPrice = jpycPrice * swapMaticAmount
+      rateReserveMatic = values[0] / 10 ** decimal["MATIC"]
+      rateReserveJpyc = values[1] / 10 ** decimal["JPYC"]
+    });
+    // getRate
+    let rateRaw = rateReserveJpyc / rateReserveMatic
+    let rate = Math.floor(rateRaw * Math.pow(10, 2)) / Math.pow(10, 2);
+    // watchRate
+    let maticJpycMinAmout = (jpycPrice / rate) * (1.0 - nuko.swapSlippage);
+    // goSwap
+    let amountIn = Math.floor(jpycPrice * 10 ** decimal["JPYC"]) / 10 ** decimal["JPYC"]
+    amountIn = web3.utils.toWei(amountIn.toString())
+    let amountOut = Math.floor(maticJpycMinAmout * 10 ** decimal["MATIC"]) / 10 ** decimal["MATIC"]
+    amountOut = web3.utils.toWei(amountOut.toString())
+
+    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax
+    const swap = async()=>{
+      try{
+        await nuko.swapContract[0].methods
+        .swapExactTokensForETH(
+          web3.utils.toHex(amountIn),
+          web3.utils.toHex(amountOut),
+          [contractAddress["JPYC"], contractAddress["MATIC"]],
+          nuko.wallet[0].address,
+          Math.floor(Date.now() / 1000) + 60 * 5
+        )
+        .send({
+          from: nuko.wallet[0].address,
+          gasLimit: web3.utils.toHex(nuko.gasLimit),
+          gasPrice: web3.utils.toHex(gas * 1e9),
+        })
+      }catch(e){
+        console.error(e)
+      }
+    }
+    await swap()
+  }else if(usdcVal > 1){
+    // USDC => MATIC
+    let usdcPrice = 0;
+    let rateReserveMatic = 0;
+    let rateReserveUsdc = 0;
+    let contract = new web3.eth.Contract(abi, contractAddress.pairMATIC_USDC);
+    await contract.methods
+    .getReserves()
+    .call()
+    .then((values) => { // 0..matic 1..usdc
+      usdcPrice = Math.floor( (values[1] / (values[0]/10**12))  * Math.pow(10, 4) ) / Math.pow(10, 4);
+      usdcPrice = usdcPrice * nuko.swapMaticAmount
+      rateReserveMatic = values[0] / 10 ** decimal["MATIC"]
+      rateReserveUsdc = values[1] / 10 ** decimal["USDC"]
+    });
+    // getRate
+    let rateRaw = rateReserveUsdc / rateReserveMatic
+    let rate = Math.floor(rateRaw * Math.pow(10, 4)) / Math.pow(10, 4);
+    // watchRate
+    let maticUsdcMinAmout = (usdcPrice / rate) * (1.0 - nuko.swapSlippage);
+    // goSwap
+    let amountIn = Math.floor(usdcPrice * 10 ** decimal["USDC"]) / 10 ** decimal["USDC"]
+    amountIn = web3.utils.toWei(amountIn.toString(), "mwei")
+    let amountOut = Math.floor(maticUsdcMinAmout * 10 ** decimal["MATIC"]) / 10 ** decimal["MATIC"]
+    amountOut = web3.utils.toWei(amountOut.toString())
+
+    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax
+    const swap = async()=>{
+      try{
+        await nuko.swapContract[0].methods
+        .swapExactTokensForETH(
+          web3.utils.toHex(amountIn),
+          web3.utils.toHex(amountOut),
+          [contractAddress["USDC"], contractAddress["MATIC"]],
+          nuko.wallet[0].address,
+          Math.floor(Date.now() / 1000) + 60 * 5
+        )
+        .send({
+          from: nuko.wallet[0].address,
+          gasLimit: web3.utils.toHex(nuko.gasLimit),
+          gasPrice: web3.utils.toHex(gas * 1e9),
+        })
+      }catch(e){
+        console.error(e)
+      }
+    }
+    await swap()
+  }
+
+}
+
 /**
  * main function
  */
@@ -634,6 +767,16 @@ const initialize = () => {
   }
   nuko.gasPref = localStorage.gasPref;
 
+  if (localStorage.lowerSwapMaticThreshold == undefined) {
+    localStorage.lowerSwapMaticThreshold = "0";
+  }
+  nuko.lowerSwapMaticThreshold = parseFloat(localStorage.lowerSwapMaticThreshold)
+
+  if (localStorage.swapMaticAmount == undefined) {
+    localStorage.swapMaticAmount = "0";
+  }
+  nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount)
+
   try {
     web3.eth.accounts.wallet.load(nuko.password);
     nuko.wallet = web3.eth.accounts.wallet;
@@ -657,6 +800,11 @@ const initialize = () => {
 
   $("#approveCoins").on("click", () => {
     $("#modalApprove").modal("show");
+  });
+  $("#autoswapMatic").on("click", () => {
+    $('#lowerSwapMaticThreshold').val(nuko.lowerSwapMaticThreshold)
+    $('#swapMaticAmount').val(nuko.swapMaticAmount)
+    $("#modalAutoswapMatic").modal("show");
   });
   $("#approveJPYC0").on("click", () => {
     $("#approveJPYC0").addClass("disabled");
@@ -759,6 +907,15 @@ const initialize = () => {
     localStorage.gasPref = nuko.gasPref;
     watchGas();
   });
+  $("#submitAutoSwap").on("click", ()=>{
+    let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val()
+    let swapMaticAmount = $("#swapMaticAmount").val()
+    localStorage.lowerSwapMaticThreshold = lowerSwapMaticThreshold? lowerSwapMaticThreshold: '0';
+    localStorage.swapMaticAmount = swapMaticAmount? swapMaticAmount: '0';
+    nuko.lowerSwapMaticThreshold = parseFloat(localStorage.lowerSwapMaticThreshold)
+    nuko.swapMaticAmount = parseFloat(localStorage.swapMaticAmount)
+    $("#modalAutoswapMatic").modal('hide');
+  })
 
   updateLimit();
 
@@ -932,6 +1089,45 @@ const abiUniswapV2Router = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amountIn",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "amountOutMin",
+        type: "uint256"
+      },
+      {
+        internalType: "address[]",
+        name: "path",
+        type: "address[]"
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256"
+      }
+    ],
+    name: "swapExactTokensForETH",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]"
+      }
+    ],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
 ];
 
 main();
