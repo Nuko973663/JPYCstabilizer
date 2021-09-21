@@ -14,6 +14,10 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210921.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210921.0)
+
+- CommunityBalance 実装
+
 ### [v.20210918.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210918.0)
 
 - gas 代の MATIC の自動補充機能を追加（デフォルトオフ）: thanks to medy.nim さん @dumblepytech1
