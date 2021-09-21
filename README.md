@@ -14,9 +14,9 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
-### [v.20210919.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210919.0)
+### [v.20210921.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210921.0)
 
-- Rate Alert (Push Notification)実装
+- CommunityBalance 実装
 
 ### [v.20210918.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210918.0)
 
