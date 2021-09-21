@@ -49,17 +49,15 @@
       >
         <!-- Sidebar - Brand -->
         
-          <a
-            class="sidebar-brand d-flex align-items-center justify-content-center"
-            href="index.html"
-          >
-            <div class="sidebar-brand-icon">
-              <img src="img/jpyc.png" width="45px" /></i>
-            </div>
-            <div class="sidebar-brand-text mx-3">JPYC stabilizer</div>
-          </a>
-        
-        
+        <a
+          class="sidebar-brand d-flex align-items-center justify-content-center"
+          href="index.html"
+        >
+          <div class="sidebar-brand-icon">
+            <img src="img/jpyc.png" width="45px" /></i>
+          </div>
+          <div class="sidebar-brand-text mx-3">JPYC stabilizer</div>
+        </a>
 
         <!-- Divider -->
         <hr class="sidebar-divider my-0" />
@@ -72,7 +70,6 @@
           >
         </li>
 
-        
         <hr class="sidebar-divider" />
         <div class="sidebar-heading">References</div>
         <li class="nav-item">
@@ -259,16 +256,16 @@
                     <i class="fas fa-file-import fa-sm fa-fw mr-2 text-gray-400"></i>
                     Import Wallet
                   </a>
-                  <a class="dropdown-item" href="#" id="approveCoins">
+                  <a class="dropdown-item" href="#" id="approveCoins" data-toggle="modal" data-target="#modalApprove">
                     <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                     Approve Coins
                   </a>
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#" id="options">
+                  <a class="dropdown-item" href="#" id="options" data-toggle="modal" data-target="#modalOption">
                     <i class="fas fa-cog fa-sm fa-fw mr-2 text-gray-400"></i>
                     Options
                   </a>
-                  <a class="dropdown-item" href="#" id="autoswapMatic">
+                  <a class="dropdown-item" href="#" id="autoswapMatic" data-toggle="modal" data-target="#modalAutoswapMatic">
                     <i class="fas fa-gas-pump fa-sm fa-fw mr-2 text-gray-400"></i>
                     Autoswap Matic
                   </a>
@@ -346,7 +343,7 @@
                           JPYC 
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                          <span id="balanceJPYC">0.0</span>
+                          <span id="balanceJPYC">0.0</span>/<small><span id="communityBalanceJPYC">0.0</span></small>
                         </div>
                       </div>
                       <div class="col-auto">
@@ -374,7 +371,7 @@
                           USDC
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                          <span id="balanceUSDC">0.0</span>
+                          <span id="balanceUSDC">0.0</span>/<small><span id="communityBalanceUSDC">0.0</span></small>
                         </div>
                       </div>
                       <div class="col-auto">
@@ -432,7 +429,7 @@
 
 
               <!-- Area Chart -->
-              <div class="col-xl-12 col-lg-12">
+              <div class="col-xl-9 col-lg-9">
                 <div class="card shadow mb-4">
                   <!-- Card Header - Dropdown -->
                   <div
@@ -458,7 +455,27 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Donut Chart -->
+              <div class="col-xl-3 col-lg-3">
+                  <div class="card shadow mb-4">
+                      <!-- Card Header - Dropdown -->
+                      <div class="card-header py-3">
+                          <h6 class="m-0 font-weight-bold text-primary">Community Balance</h6>
+                      </div>
+                      <!-- Card Body -->
+                      <div class="card-body">
+                          <div class="chart-pie pt-4">
+                              <canvas id="myPieChart"></canvas>
+                          </div>
+                          <div class="text-center">
+                            <small><span id="communityBalanceJPYC2">222</span> JPYC / <span id="communityBalanceUSDC2">222</span> USDC</small>
+                          </div>
+                      </div>
+                  </div>
               </div>
+
+            </div>
 
             <div class="row">
 
@@ -989,7 +1006,8 @@
           </div>
           </div>
       </div>
-      </div>
+    </div>
+
 
 
     <!-- Bootstrap core JavaScript-->
@@ -1012,6 +1030,8 @@
     <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
 
     <script src="js/index.min.js"></script>
+
+    
     <!-- <script src="js/index.js"></script> -->
   </body>
 </html>
