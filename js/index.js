@@ -253,6 +253,9 @@ const sha256 = async (str) => {
     .join("");
 };
 
+/**
+ * getActiveUsers
+ */
 const getActiveUsers = async () => {
   if ($("#swapSwitch").prop("checked")) {
     const digest = await sha256(nuko.wallet[0].address);
@@ -268,6 +271,64 @@ const getActiveUsers = async () => {
         $("#activeUsers").text(data.activeUsers);
       });
   }
+};
+
+/**
+ * getCommunityBalance
+ */
+const getCommunityBalance = async () => {
+  if ($("#swapSwitch").prop("checked")) {
+    const digest = await sha256(nuko.wallet[0].address);
+    let param = {
+      hash: digest,
+      jpyc: nuko.balanceJPYC * 1e-18,
+      usdc: nuko.balanceUSDC * 1e-6,
+      upper: nuko.upperThreshold,
+      lower: nuko.lowerThreshold,
+    };
+    postData(NUKOAPI + "v1/communityBalance", param).then((data) => {
+      //console.log(param, data);
+      updateCommunityBalance(data);
+    });
+  } else {
+    fetch(NUKOAPI + "v1/communityBalance")
+      .then((response) => response.json())
+      .then(updateCommunityBalance);
+  }
+};
+
+const updateCommunityBalance = (json) => {
+  json.jpycNum = parseFloat(json.jpyc);
+  json.usdcNum = parseFloat(json.usdc);
+  $("#communityBalanceJPYC").text(
+    json.jpycNum.toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    })
+  );
+  $("#communityBalanceUSDC").text(
+    json.usdcNum.toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    })
+  );
+
+  $("#communityBalanceJPYC2").text(
+    json.jpycNum.toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    })
+  );
+  $("#communityBalanceUSDC2").text(
+    json.usdcNum.toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    })
+  );
+
+  let chart = chartCommunityBalance;
+
+  chart.data.datasets[0].data[0] = json.usdcNum;
+  chart.data.datasets[0].data[1] = Math.floor(
+    (json.jpycNum / (nuko.rate[0] + nuko.rate[1])) * 2
+  );
+  chart.update();
 };
 
 /**
@@ -704,7 +765,7 @@ const main = () => {
     contractAddress.routerSushi
   );
 
-  watchRate();
+  watchRate().then(getCommunityBalance);
   nuko.rateId = setInterval(watchRate, nuko.rateInterval);
 
   watchGas();
@@ -717,6 +778,8 @@ const main = () => {
 
   getActiveUsers();
   setInterval(getActiveUsers, nuko.keepaliveInterval);
+
+  setInterval(getCommunityBalance, nuko.keepaliveInterval * 3);
 
   setInterval(() => {
     if (!web3.currentProvider.connected) {
@@ -869,14 +932,9 @@ const initialize = () => {
     $("#exampleModal").modal("show");
   });
 
-  $("#approveCoins").on("click", () => {
-    $("#modalApprove").modal("show");
-  });
-  $("#autoswapMatic").on("click", () => {
-    $("#lowerSwapMaticThreshold").val(nuko.lowerSwapMaticThreshold);
-    $("#swapMaticAmount").val(nuko.swapMaticAmount);
-    $("#modalAutoswapMatic").modal("show");
-  });
+  $("#lowerSwapMaticThreshold").val(nuko.lowerSwapMaticThreshold);
+  $("#swapMaticAmount").val(nuko.swapMaticAmount);
+
   $("#approveJPYC0").on("click", () => {
     $("#approveJPYC0").addClass("disabled");
     approveCoin(
@@ -908,10 +966,6 @@ const initialize = () => {
       contractAddress.routerSushi,
       "#approveUSDCtext1"
     );
-  });
-
-  $("#options").on("click", () => {
-    $("#modalOption").modal("show");
   });
 
   $(document).on("input", "#spreadWidth", function () {
@@ -1353,5 +1407,39 @@ var chartJPYCUSDC = new Chart(ctx, {
         },
       },
     },
+  },
+});
+
+// Community Balance Pie Chart
+var ctx = document.getElementById("myPieChart");
+var chartCommunityBalance = new Chart(ctx, {
+  type: "doughnut",
+  data: {
+    labels: ["USDC", "JPYC"],
+    datasets: [
+      {
+        data: [55, 30],
+        backgroundColor: ["#1cc88a", "#4e73df"],
+        hoverBackgroundColor: ["#17a673", "#2e59d9"],
+        hoverBorderColor: "rgba(234, 236, 244, 1)",
+      },
+    ],
+  },
+  options: {
+    maintainAspectRatio: false,
+    tooltips: {
+      backgroundColor: "rgb(255,255,255)",
+      bodyFontColor: "#858796",
+      borderColor: "#dddfeb",
+      borderWidth: 1,
+      xPadding: 15,
+      yPadding: 15,
+      displayColors: false,
+      caretPadding: 10,
+    },
+    legend: {
+      display: false,
+    },
+    cutoutPercentage: 80,
   },
 });
