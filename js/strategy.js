@@ -124,14 +124,6 @@ const getRate = async () => {
   $("#rate").text(nuko.rate[0] + " / " + nuko.rate[1]);
 };
 
-const chartAddData = (label, data) => {
-  let chart = chartJPYCUSDC;
-  chart.data.labels.push(label);
-  chart.data.datasets[0].data.push(data[0]);
-  chart.data.datasets[1].data.push(data[1]);
-  chart.update();
-};
-
 const watchGas = async () => {
   nuko.gas = await getGas();
   $("#gasPrice").text(nuko.gas + " " + nuko.gasPref);
@@ -187,9 +179,9 @@ const main = () => {
   watchJPYUSD();
   nuko.jpyusdId = setInterval(watchJPYUSD, nuko.jpyusdInterval);
 
-  NukoApi.getActiveUsers(nuko.wallet[0].address);
+  NukoApi.getActiveUsers("");
   setInterval(() => {
-    NukoApi.getActiveUsers(nuko.wallet[0].address);
+    NukoApi.getActiveUsers("");
   }, nuko.keepaliveInterval);
 
   setInterval(() => {
@@ -202,28 +194,54 @@ const main = () => {
   }, 15 * 1000);
 };
 
-/**
- * update wallet address
- */
-const updateAccount = () => {
-  if (nuko.wallet == null) {
-    $("#wallet").text("Create or Import Wallet");
-  } else {
-    $("#wallet").text(nuko.wallet[0].address);
-  }
-};
-
 const initialize = () => {
   if (localStorage.gasPref == undefined) {
     localStorage.gasPref = "fastest";
   }
   nuko.gasPref = localStorage.gasPref;
 
-  try {
-    web3.eth.accounts.wallet.load(nuko.password);
-    nuko.wallet = web3.eth.accounts.wallet;
-    updateAccount();
-  } catch (e) {}
+  $(document).on("input", "#swapUpperThreshold", updateFig);
+  $(document).on("input", "#swapLowerThreshold", updateFig);
+
+  /* Please do NOT call API frequently. Resource of API server is running out. */
+  NukoApi.getSMA(3600 * 24 * 7).then((sma) => {
+    $("#swapUpperThreshold").val(sma + 1);
+    $("#swapLowerThreshold").val(sma - 1);
+    NukoApi.getRateLog().then((data) => {
+      let log = data.reduce(
+        (acc, cur) => {
+          acc.date.push(new Date(cur.date).toLocaleString().slice(0, -3));
+          acc.rate.push(cur.rate);
+          return acc;
+        },
+        { date: [], rate: [] }
+      );
+      let chart = chartJPYCUSDC;
+      chart.data.labels = log.date;
+      chart.data.datasets[0].data = log.rate;
+
+      updateFig();
+    });
+  });
+};
+
+const updateFig = () => {
+  let chart = chartJPYCUSDC;
+  let dt = chart.data.datasets[0].data;
+
+  let upper = [...dt];
+  let lower = [...dt];
+  let ul = parseFloat($("#swapUpperThreshold").val());
+  let ll = parseFloat($("#swapLowerThreshold").val());
+
+  chart.data.datasets[1].data = upper.fill(ul);
+  chart.data.datasets[2].data = lower.fill(ll);
+  chart.update();
+
+  let countUpper = dt.filter((n) => n > ul).length;
+  let countLower = dt.filter((n) => n < ll).length;
+  $("#numUpper").text(countUpper);
+  $("#numLower").text(countLower);
 };
 
 // getReserves関数のABI
@@ -300,11 +318,6 @@ const abiERC20 = [
 
 main();
 
-/*
-$(document).ready(() => {
-  $("#dataTable").DataTable();
-});
-*/
 // Set new default font family and font color to mimic Bootstrap's default styling
 (Chart.defaults.global.defaultFontFamily = "Nunito"),
   '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
@@ -342,40 +355,47 @@ var chartJPYCUSDC = new Chart(ctx, {
     datasets: [
       {
         label: "QuickSwap",
-        lineTension: 0.3,
-        backgroundColor: "rgba(78, 115, 223, 0.05)",
+        lineTension: 0.2,
+        backgroundColor: "rgba(78, 115, 223, 0.0)",
         borderColor: "rgba(78, 115, 223, 1)",
-        pointRadius: 3,
+        pointRadius: 1,
         pointBackgroundColor: "rgba(78, 115, 223, 1)",
         pointBorderColor: "rgba(78, 115, 223, 1)",
         pointHoverRadius: 3,
         pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
         pointHoverBorderColor: "rgba(78, 115, 223, 1)",
         pointHitRadius: 10,
-        pointBorderWidth: 2,
+        pointBorderWidth: 1,
         data: [],
       },
       {
-        label: "SushiSwap",
-        lineTension: 0.3,
-        backgroundColor: "rgba(204, 0, 255, 0.05)",
+        label: "upper",
+        lineTension: 0.1,
+        backgroundColor: "rgba(204, 0, 255, 0)",
         borderColor: "rgba(204, 0, 255, 1)",
-        pointRadius: 3,
-        pointBackgroundColor: "rgba(204, 0, 255, 1)",
-        pointBorderColor: "rgba(204, 0, 255, 1)",
-        pointHoverRadius: 3,
-        pointHoverBackgroundColor: "rgba(204, 0, 255, 1)",
-        pointHoverBorderColor: "rgba(204, 0, 255, 1)",
-        pointHitRadius: 10,
-        pointBorderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        pointHitRadius: 0,
+        pointBorderWidth: 0,
+        data: [],
+      },
+      {
+        label: "lower",
+        lineTension: 0.1,
+        backgroundColor: "rgba(204, 0, 255, 0.0)",
+        borderColor: "rgba(255, 128, 128, 1)",
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        pointHitRadius: 0,
+        pointBorderWidth: 0,
         data: [],
       },
     ],
   },
   options: {
-    resizeDelay: 100,
     responsive: true,
     maintainAspectRatio: false,
+    animation: { duration: 0 },
     layout: {
       padding: {
         left: 10,
