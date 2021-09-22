@@ -272,6 +272,57 @@
             </div>
 
             <div class="row">
+              <div class="col-xl-12 col-lg-12">
+                <div class="card shadow mb-4">
+                  <!-- Card Header - Dropdown -->
+                  <div
+                    class="
+                      card-header
+                      py-3
+                      d-flex
+                      flex-row
+                      align-items-center
+                      justify-content-between
+                    ">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Settings
+                    </h6>
+                    
+                  </div>
+                  <!-- Card Body -->
+                  <div class="card-body">
+                    <div class="form-group">
+                        
+                      <label for="spreadWidth">Swap threshold</label>
+                      <div class="input-group mb-3">
+                        <div class="input-group-append">
+                          <span class="input-group-text" id="upperlabel">Upper threshold</span>
+                        </div>
+                        <input type="number" step="0.1" class="form-control" value="117.74" aria-label="" aria-describedby="upperLabel" id="swapUpperThreshold">
+                      </div>
+                      <div class="input-group mb-3">
+                        <div class="input-group-append">
+                          <span class="input-group-text" id="lowerlabel">Lower threshold</span>
+                        </div>
+                        <input type="number" step="0.1" class="form-control" value="115.74" aria-label="" aria-describedby="lowerLabel" id="swapLowerThreshold">
+                      </div>
+                    </div>
+                    
+                    <div>
+                      Upper limit triggers: <span id="numUpper"></span>
+                    </div>
+                    <div>
+                      Lower limit triggers: <span id="numLower"></span>
+                    </div>
+
+                  </div>
+
+                </div>
+                
+              </div>
+            </div>
+
+            <div class="row">
 
               <!-- Activity Log 
               <div class="col-xl-12 col-lg-12">
