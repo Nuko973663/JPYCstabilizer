@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { NukoEtc } from "/js/lib/NukoEtc.min.js";
+import { NukoEtc } from "./NukoEtc.min.js";
 
 const NUKOAPI = "https://api.nuko.town/";
 
