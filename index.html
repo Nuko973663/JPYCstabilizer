@@ -66,17 +66,33 @@
         <li class="nav-item active">
           <a class="nav-link" href="index.html">
             <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span></a
-          >
+            <span>Dashboard</span>
+          </a>
         </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="strategy.html">
+            <i class="fas fa-fw fa-chess-rook"></i>
+            <span>Strategy</span>
+          </a>
+        </li>
+
+        <!--
+        <li class="nav-item">
+          <a class="nav-link" href="leaderboard.html">
+            <i class="fas fa-fw fa-cat"></i>
+            <span>Leaderboard</span>
+          </a>
+        </li>
+        -->
 
         <hr class="sidebar-divider" />
         <div class="sidebar-heading">References</div>
         <li class="nav-item">
           <a class="nav-link" href="https://hide.ac/articles/ZZoaKG4yb" target="_blank">
             <i class="fas fa-book-open"></i>
-            <span>Guide</span></a
-          >
+            <span>Guide</span>
+          </a>
         </li>
 
         <!-- Divider -->
@@ -303,14 +319,38 @@
 
               <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
 
+
+
               <div class="text-right">
-                  <a href="#" class="btn btn-secondary btn-icon-split btn-sm">
+
+                <!-- strategy
+                <div class="dropdown btn-group">
+                  <a href="#" class="btn btn-success btn-icon-split btn-sm mx-2 dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <span class="icon text-white-50">
+                          <i class="fas fa-chess-rook"></i>
+                      </span>
+                      <span class="text" id="gasPrice">strategy</span>
+                      
+                  </a>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#" id="gasFastest">fixed rate</a>
+                    <a class="dropdown-item" href="#" id="gasFaster">faster</a>
+                    <a class="dropdown-item" href="#" id="gasFast">fast</a>
+                    <a class="dropdown-item" href="#" id="gasStandard">standard</a>
+                    
+                    <a class="dropdown-item" href="#" id="gasSafeLow">safeLow</a>
+                    
+                  </div>
+                </div> -->
+
+                <!-- upper and lower limit -->
+                  <a href="#" class="btn btn-secondary btn-icon-split btn-sm " data-toggle="modal" data-target="#modalOption">
                       <span class="icon text-white-50">
                           <i class="fas fa-angle-double-up"></i>
                       </span>
                       <span class="text" id="upperLimit">100.0</span>
                   </a>
-                  <a href="#" class="btn btn-secondary btn-icon-split btn-sm">
+                  <a href="#" class="btn btn-secondary btn-icon-split btn-sm" data-toggle="modal" data-target="#modalOption">
                       <span class="icon text-white-50">
                           <i class="fas fa-angle-double-down"></i>
                       </span>
@@ -926,11 +966,26 @@
               <div class="">
                 <div class="form-group">
                   
+                  <label for="spreadWidth">Swap threshold</label>
+                  <div class="input-group mb-3">
+                    <div class="input-group-append">
+                      <span class="input-group-text" id="upperlabel">Upper threshold</span>
+                    </div>
+                    <input type="text" class="form-control" value="117.74" aria-label="" aria-describedby="upperLabel" id="swapUpperThreshold">
+                  </div>
+                  <div class="input-group mb-3">
+                    <div class="input-group-append">
+                      <span class="input-group-text" id="lowerlabel">Lower threshold</span>
+                    </div>
+                    <input type="text" class="form-control" value="115.74" aria-label="" aria-describedby="lowerLabel" id="swapLowerThreshold">
+                  </div>
                   
+                  <!--
                   <label for="spreadWidth">Triger spread width: <span id="spread">2.0</span></label>
                   <div class="row mb-4">
                     <div class="col"><input type="range" class="form-control-range" id="spreadWidth" min="2" max="10" step="0.1" value="2"></div>
                   </div>
+                  -->
                   
                   <label for="spreadWidth">Minimum exchange amount</label>
                   <div class="input-group mb-3">
@@ -960,6 +1015,12 @@
             </div>
         </div>
         <div class="modal-footer">
+            <a href="#" class="btn btn-primary btn-icon-split" id="submitOption">
+                <span class="icon text-white-50">
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+                <span class="text">Save</span>
+            </a>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
         </div>
@@ -1029,7 +1090,7 @@
 
     <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
 
-    <script src="js/index.min.js"></script>
+    <script type="module" src="js/index.min.js"></script>
 
     
     <!-- <script src="js/index.js"></script> -->
