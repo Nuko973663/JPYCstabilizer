@@ -5,7 +5,10 @@
 
 "use strict";
 
-const VERSION_TEXT = "20210921.0";
+import { NukoApi } from "/js/lib/NukoApi.min.js";
+//import { NukoEtc } from "/js/lib/NukoEtc.min.js";
+
+const VERSION_TEXT = "20210922.0";
 
 var nuko = {
   gas: 0,
@@ -48,9 +51,6 @@ var nuko = {
   flgSwapping: 0,
   wallet: null,
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
-  theDayOfTrueStable: "2099-12-31T23:23:59.000Z",
-  theDayOfNuko: "2021-09-14T10:00:00.000Z",
-  theDayOfNukoRateDeviate: 117.0 / 110.0,
   contractRate: [],
   versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
   versionAlertFlag: false,
@@ -60,8 +60,6 @@ var nuko = {
   swapMaticAmount: 0,
   currentWeb3Provider: 0,
 };
-
-const NUKOAPI = "https://api.nuko.town/";
 
 const NODE_URL = [
   "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws",
@@ -223,81 +221,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
   getBalance();
 };
 
-async function postData(url = "", data = {}) {
-  // Default options are marked with *
-  const response = await fetch(url, {
-    method: "POST",
-    //mode: "cors",
-    cache: "no-cache",
-    //credentials: "same-origin",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    redirect: "follow",
-    referrerPolicy: "no-referrer",
-    body: JSON.stringify(data),
-  });
-  return response.json(); // parses JSON response into native JavaScript objects
-}
-
-/**
- * calculate SHA-256
- * @param {*} str
- * @returns
- */
-const sha256 = async (str) => {
-  const buff = new Uint8Array([].map.call(str, (c) => c.charCodeAt(0))).buffer;
-  const digest = await crypto.subtle.digest("SHA-256", buff);
-  return [].map
-    .call(new Uint8Array(digest), (x) => ("00" + x.toString(16)).slice(-2))
-    .join("");
-};
-
-/**
- * getActiveUsers
- */
-const getActiveUsers = async () => {
-  if ($("#swapSwitch").prop("checked")) {
-    const digest = await sha256(nuko.wallet[0].address);
-    let param = { hash: digest };
-    postData(NUKOAPI + "v1/activeUsers", param).then((data) => {
-      //console.log(param, data);
-      $("#activeUsers").text(data.activeUsers);
-    });
-  } else {
-    fetch(NUKOAPI + "v1/activeUsers")
-      .then((response) => response.json())
-      .then((data) => {
-        $("#activeUsers").text(data.activeUsers);
-      });
-  }
-};
-
-/**
- * getCommunityBalance
- */
-const getCommunityBalance = async () => {
-  if ($("#swapSwitch").prop("checked")) {
-    const digest = await sha256(nuko.wallet[0].address);
-    let param = {
-      hash: digest,
-      jpyc: nuko.balanceJPYC * 1e-18,
-      usdc: nuko.balanceUSDC * 1e-6,
-      upper: nuko.upperThreshold,
-      lower: nuko.lowerThreshold,
-    };
-    postData(NUKOAPI + "v1/communityBalance", param).then((data) => {
-      //console.log(param, data);
-      updateCommunityBalance(data);
-    });
-  } else {
-    fetch(NUKOAPI + "v1/communityBalance")
-      .then((response) => response.json())
-      .then(updateCommunityBalance);
-  }
-};
-
-const updateCommunityBalance = (json) => {
+const updateCommunityBalance = (json, rate) => {
   json.jpycNum = parseFloat(json.jpyc);
   json.usdcNum = parseFloat(json.usdc);
   $("#communityBalanceJPYC").text(
@@ -307,7 +231,7 @@ const updateCommunityBalance = (json) => {
   );
   $("#communityBalanceUSDC").text(
     json.usdcNum.toLocaleString(undefined, {
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
     })
   );
 
@@ -318,16 +242,15 @@ const updateCommunityBalance = (json) => {
   );
   $("#communityBalanceUSDC2").text(
     json.usdcNum.toLocaleString(undefined, {
-      maximumFractionDigits: 0,
+      maximumFractionDigits: 2,
     })
   );
 
   let chart = chartCommunityBalance;
 
   chart.data.datasets[0].data[0] = json.usdcNum;
-  chart.data.datasets[0].data[1] = Math.floor(
-    (json.jpycNum / (nuko.rate[0] + nuko.rate[1])) * 2
-  );
+  chart.data.datasets[0].data[1] = json.jpyc / rate;
+
   chart.update();
 };
 
@@ -339,7 +262,7 @@ const watchRate = async () => {
   await getRate();
 
   if ($("#swapSwitch").prop("checked")) {
-    console.log(nuko.rate);
+    //console.log(nuko.rate);
 
     // QuickSwapとSushiSwapの両方がtrigerされる場合にトライする順番をランダム化する
     let array = [0, 1];
@@ -550,16 +473,6 @@ const getJPYUSD = async () => {
   let json = await response.json();
   let jpyusd = parseInt(json.bitcoin.jpy) / parseInt(json.bitcoin.usd);
 
-  let deviateTorelance =
-    Math.max(0, Date.parse(nuko.theDayOfTrueStable) - Date.now()) /
-    (Date.parse(nuko.theDayOfTrueStable) - Date.parse(nuko.theDayOfNuko));
-
-  let targetRate = 116.7 + Math.random() * 0.1;
-  // (1 + deviateTorelance * (nuko.theDayOfNukoRateDeviate - 1)) * jpyusd;
-  nuko.target = targetRate;
-  nuko.upperThreshold = targetRate + nuko.spread / 2;
-  nuko.lowerThreshold = targetRate - nuko.spread / 2;
-
   return jpyusd;
 };
 
@@ -598,8 +511,8 @@ const approveCoin = async (tokenContractAddress, spenderAddress, id) => {
 };
 
 const updateLimit = () => {
-  nuko.upperThreshold = nuko.target + nuko.spread / 2;
-  nuko.lowerThreshold = nuko.target - nuko.spread / 2;
+  //nuko.upperThreshold = nuko.target + nuko.spread / 2;
+  //nuko.lowerThreshold = nuko.target - nuko.spread / 2;
   $("#upperLimit").text(nuko.upperThreshold.toFixed(2));
   $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
@@ -765,7 +678,13 @@ const main = () => {
     contractAddress.routerSushi
   );
 
-  watchRate().then(getCommunityBalance);
+  watchRate().then(
+    NukoApi.getCommunityBalance(
+      nuko.wallet[0].address,
+      nuko,
+      updateCommunityBalance
+    )
+  );
   nuko.rateId = setInterval(watchRate, nuko.rateInterval);
 
   watchGas();
@@ -776,10 +695,18 @@ const main = () => {
 
   nuko.verId = setInterval(checkLatestVersion, nuko.versionInterval);
 
-  getActiveUsers();
-  setInterval(getActiveUsers, nuko.keepaliveInterval);
+  NukoApi.getActiveUsers(nuko.wallet[0].address);
+  setInterval(() => {
+    NukoApi.getActiveUsers(nuko.wallet[0].address);
+  }, nuko.keepaliveInterval);
 
-  setInterval(getCommunityBalance, nuko.keepaliveInterval * 3);
+  setInterval(() => {
+    NukoApi.getCommunityBalance(
+      nuko.wallet[0].address,
+      nuko,
+      updateCommunityBalance
+    );
+  }, nuko.keepaliveInterval * 3);
 
   setInterval(() => {
     if (!web3.currentProvider.connected) {
@@ -790,6 +717,8 @@ const main = () => {
     }
   }, 15 * 1000);
 };
+
+const updateSwapThreshold = () => {};
 
 /**
  * update wallet address
@@ -968,12 +897,14 @@ const initialize = () => {
     );
   });
 
+  /*
   $(document).on("input", "#spreadWidth", function () {
     nuko.spread = parseFloat($(this).val());
     localStorage.spread = nuko.spread;
     $("#spread").text(nuko.spread.toFixed(1));
     updateLimit();
   });
+  */
 
   $("#createNewWallet").on("click", () => {
     web3.eth.accounts.wallet.clear();
@@ -1065,9 +996,29 @@ const initialize = () => {
 
   updateAllowance();
 
+  /*
   nuko.spread = parseFloat(localStorage.spread ? localStorage.spread : 2);
   $("#spreadWidth").val(nuko.spread);
   $("#spread").text(nuko.spread.toFixed(1));
+  */
+  nuko.upperThreshold = parseFloat(
+    localStorage.upperThreshold ? localStorage.upperThreshold : 117.7
+  );
+  nuko.lowerThreshold = parseFloat(
+    localStorage.lowerThreshold ? localStorage.lowerThreshold : 115.7
+  );
+  $("#swapUpperThreshold").val(nuko.upperThreshold.toFixed(2));
+  $("#swapLowerThreshold").val(nuko.lowerThreshold.toFixed(2));
+
+  $("#submitOption").on("click", () => {
+    nuko.upperThreshold = parseFloat($("#swapUpperThreshold").val());
+    nuko.lowerThreshold = parseFloat($("#swapLowerThreshold").val());
+    localStorage.upperThreshold = nuko.upperThreshold;
+    localStorage.lowerThreshold = nuko.lowerThreshold;
+    $("#modalOption").modal("hide");
+    console.log(nuko);
+    updateLimit();
+  });
 
   /**
    * minimum amount of swaping
@@ -1271,8 +1222,6 @@ $(document).ready(() => {
 Chart.defaults.global.defaultFontColor = "#858796";
 
 function number_format(number, decimals, dec_point, thousands_sep) {
-  // *     example: number_format(1234.56, 2, ',', ' ');
-  // *     return: '1 234,56'
   number = (number + "").replace(",", "").replace(" ", "");
   var n = !isFinite(+number) ? 0 : +number,
     prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),

@@ -8,11 +8,15 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 - ウォレットアドレスの非表示オプション
 - リーダーボード実装
 - 報酬履歴表示
-- community balance の表示（安定させ隊のトータル軍資金 USDC, JPYC）
 - スタビの APR 表示
 - 流動性プールの APR 表示
 
 ## update log
+
+### [v.20210922.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210922.0)
+
+- トレードレートの設定機能の追加
+- リファクタリング
 
 ### [v.20210921.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210921.0)
 
