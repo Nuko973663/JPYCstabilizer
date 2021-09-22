@@ -55,4 +55,32 @@ export class NukoApi {
         });
     }
   }
+
+  /**
+   * getRateLog
+   */
+  static async getRateLog() {
+    let log;
+    await fetch(NUKOAPI + "v1/rateLog/")
+      .then((response) => response.json())
+      .then((data) => {
+        //console.log(data);
+        log = data;
+      });
+    return log;
+  }
+
+  /**
+   * getSMA
+   */
+  static async getSMA(duration) {
+    let ret;
+    await fetch(NUKOAPI + "v1/sma/" + duration.toString())
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log(data);
+        ret = data.sma;
+      });
+    return ret;
+  }
 }
