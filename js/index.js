@@ -963,6 +963,12 @@ const initialize = () => {
     localStorage.gasPref = nuko.gasPref;
     watchGas();
   });
+  $("#gasSafeLow").on("click", () => {
+    nuko.gasPref = "gasSafeLow";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
+
   $("#submitAutoSwap").on("click", () => {
     let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val();
     let swapMaticAmount = $("#swapMaticAmount").val();
