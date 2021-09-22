@@ -5,7 +5,7 @@
 
 "use strict";
 
-import { NukoApi } from "/js/lib/NukoApi.min.js";
+import { NukoApi } from "./lib/NukoApi.min.js";
 //import { NukoEtc } from "/js/lib/NukoEtc.min.js";
 
 const VERSION_TEXT = "20210922.0";
