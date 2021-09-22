@@ -5,8 +5,7 @@
 
 "use strict";
 
-import { NukoApi } from "/js/lib/NukoApi.min.js";
-//import { NukoEtc } from "/js/lib/NukoEtc.min.js";
+import { NukoApi } from "./lib/NukoApi.min.js";
 
 var nuko = {
   gas: 0,
