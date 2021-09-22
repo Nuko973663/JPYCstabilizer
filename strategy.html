@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="nuko973663" />
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+    <title>JPYC Stabilizer - Dashboard</title>
+
+    <!-- Custom fonts for this template-->
+    <link
+      href="vendor/fontawesome-free/css/all.min.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+      rel="stylesheet"
+    />
+
+    <!-- Custom styles for this template-->
+    <link href="css/sb-admin-2.min.css" rel="stylesheet" />
+
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W62M4XNEVJ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-W62M4XNEVJ');
+    </script>
+  </head>
+
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      <!-- Sidebar -->
+      <ul
+        class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
+        id="accordionSidebar"
+      >
+        <!-- Sidebar - Brand -->
+        
+        <a
+          class="sidebar-brand d-flex align-items-center justify-content-center"
+          href="index.html"
+        >
+          <div class="sidebar-brand-icon">
+            <img src="img/jpyc.png" width="45px" /></i>
+          </div>
+          <div class="sidebar-brand-text mx-3">JPYC stabilizer</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0" />
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item active">
+          <a class="nav-link" href="strategy.html">
+            <i class="fas fa-fw fa-chess-rook"></i>
+            <span>Strategy</span>
+          </a>
+        </li>
+
+        <!--
+        <li class="nav-item">
+          <a class="nav-link" href="leaderboard.html">
+            <i class="fas fa-fw fa-cat"></i>
+            <span>Leaderboard</span>
+          </a>
+        </li>
+        -->
+
+        <hr class="sidebar-divider" />
+        <div class="sidebar-heading">References</div>
+        <li class="nav-item">
+          <a class="nav-link" href="https://hide.ac/articles/ZZoaKG4yb" target="_blank">
+            <i class="fas fa-book-open"></i>
+            <span>Guide</span>
+          </a>
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider" />
+
+        <!-- Heading -->
+        <div class="sidebar-heading">Links</div>
+
+
+        <!-- Nav Item -->
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/Nuko973663/JPYCstabilizer" target="_blank">
+            <i class="fab fa-github"></i>
+            <span>GitHub</span></a
+          >
+        </li>
+
+        <!-- Nav Item -->
+        <li class="nav-item">
+          <a class="nav-link" href="https://twitter.com/nuko973663" target="_blank">
+            <i class="fab fa-twitter"></i>
+            <span>@nuko973663</span></a
+          >
+        </li>
+
+        <!-- Nav Item -->
+        <li class="nav-item">
+          <a class="nav-link" href="https://info.quickswap.exchange/pair/0x205995421c72dc223f36bbfad78b66eea72d2677" target="_blank">
+            <i class="fas fa-exchange-alt"></i>
+            <span>QuickSwap USDC-JPYC</span></a
+          >
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="https://analytics-polygon.sushi.com/pairs/0xfbae8e2d04a67c10047d83ee9b8aeffe7f6ea3f4" target="_blank">
+            <i class="fas fa-exchange-alt"></i>
+            <span>SushiSwap USDC-JPYC</span></a
+          >
+        </li>
+
+     
+
+        <!-- Divider -->
+        <hr class="sidebar-divider d-none d-md-block" />
+
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+          <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+
+       
+      </ul>
+      <!-- End of Sidebar -->
+
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          <!-- Topbar -->
+          <nav
+            class="
+              navbar navbar-expand navbar-light
+              bg-white
+              topbar
+              mb-4
+              static-top
+              shadow
+            "
+          >
+            <!-- Sidebar Toggle (Topbar) -->
+            <button
+              id="sidebarToggleTop"
+              class="btn btn-link d-md-none rounded-circle mr-3"
+            >
+              <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- Top bar Info -->
+
+            <div>
+                <a href="#" class="btn btn-success btn-icon-split btn-sm mx-2">
+                    <span class="icon text-white-50">
+                        <img src="img/USDC.svg" width="20px" /></i>
+                    </span>
+                    <span class="text" id="rate"></span>
+                    <span class="icon text-white-50">
+                        <img src="img/jpyc.png" width="20px" /></i>
+                    </span>
+                </a>
+            </div>
+
+            <div>
+              <div class="dropdown btn-group">
+                <a href="#" class="btn btn-warning btn-icon-split btn-sm mx-2"\aria-haspopup="true" aria-expanded="false">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-gas-pump"></i>
+                    </span>
+                    <span class="text" id="gasPrice">gwei</span>
+
+                </a>
+              </div>
+            </div>
+
+            <div>
+                <a href="#" class="btn btn-primary btn-icon-split btn-sm mx-2">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-dollar-sign"></i>
+                    </span>
+                    <span class="text" id="jpyusd">100</span>
+                    <span class="icon text-white-50">
+                        <i class="fas fa-yen-sign"></i>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Active Users -->
+            <div>
+                <a href="#" class="btn btn-info btn-icon-split btn-sm mx-2">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-users"></i>
+                    </span>
+                    <span class="text" id="activeUsers">0</span>
+                    
+                </a>
+            </div>
+
+          </nav>
+          <!-- End of Topbar -->
+
+          <!-- Begin Page Content -->
+          <div class="container-fluid" id="containerBody">
+            <!-- Page Heading -->
+
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+
+              <h1 class="h3 mb-0 text-gray-800">Strategy</h1>              
+              
+            </div>
+    
+    
+
+            <!-- Content Row -->
+
+            <div class="row">
+
+
+              <!-- Area Chart -->
+              <div class="col-xl-12 col-lg-12">
+                <div class="card shadow mb-4">
+                  <!-- Card Header - Dropdown -->
+                  <div
+                    class="
+                      card-header
+                      py-3
+                      d-flex
+                      flex-row
+                      align-items-center
+                      justify-content-between
+                    "
+                  >
+                    <h6 class="m-0 font-weight-bold text-primary">
+                      Chart
+                    </h6>
+                    
+                  </div>
+                  <!-- Card Body -->
+                  <div class="card-body">
+                    <div class="chart-area">
+                      <canvas id="myAreaChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+    
+
+            </div>
+
+            <div class="row">
+
+              <!-- Activity Log 
+              <div class="col-xl-12 col-lg-12">
+                  <div class="card shadow mb-4">
+                      <div class="card-header py-3">
+                          <h6 class="m-0 font-weight-bold text-primary">Activity Log</h6>
+                      </div>
+                      <div class="card-body">
+                          <div class="table-responsive">
+                              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                  <thead>
+                                      <tr>
+                                          <th>DateTime</th>
+                                          <th>from</th>
+                                          <th>to</th>
+                                          <th>rate</th>
+                                          <th>amountIn</th>
+                                          <th>amountOutMin</th>
+                                          <th>gas</th>
+                                          <th>TX</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                      
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+            -->
+            </div>
+
+           
+
+          </div>
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+          <div class="container my-auto">
+            <div class="copyright text-center my-auto">
+              <span>JPYC stabilizer <span id="versionText"></span></span>
+            </div>
+            <div class="copyright text-center my-auto" style="padding: 8px;">
+              <span>  Copyright &copy; @nuko973663 2021</span>
+            </div>
+            <div class="copyright text-center my-auto">
+                <span>Thanks to <a href="https://startbootstrap.com/theme/sb-admin-2">SB Admin<sup>2</sup></a></span>
+            </div>
+          </div>
+        </footer>
+        <!-- End of Footer -->
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="js/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <!-- Page level plugins -->
+    <script src="vendor/chart.js/Chart.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <script type="module" src="js/strategy.min.js"></script>
+  </body>
+</html>
