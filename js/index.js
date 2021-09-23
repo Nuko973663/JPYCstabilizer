@@ -452,7 +452,7 @@ const watchGas = async () => {
     "standard : " + parseInt(nuko.gasList.standard) + " gwei"
   );
   $("#gasSafeLow").text(
-    "safelow : " + parseInt(nuko.gasList.safeLow) + " gwei"
+    "safeLow : " + parseInt(nuko.gasList.safeLow) + " gwei"
   );
 };
 
@@ -963,6 +963,12 @@ const initialize = () => {
     localStorage.gasPref = nuko.gasPref;
     watchGas();
   });
+  $("#gasSafeLow").on("click", () => {
+    nuko.gasPref = "safeLow";
+    localStorage.gasPref = nuko.gasPref;
+    watchGas();
+  });
+
   $("#submitAutoSwap").on("click", () => {
     let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val();
     let swapMaticAmount = $("#swapMaticAmount").val();
