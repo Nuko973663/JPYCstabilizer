@@ -171,7 +171,7 @@
             <!-- Top bar Info -->
 
             <div>
-                <a href="#" class="btn btn-success btn-icon-split btn-sm mx-2">
+                <a href="./strategy.html" class="btn btn-success btn-icon-split btn-sm mx-2">
                     <span class="icon text-white-50">
                         <img src="img/USDC.svg" width="20px" /></i>
                     </span>
@@ -232,6 +232,110 @@
     
     
 
+    <!-- Content Row -->
+            <div class="row">
+
+            <!-- MATIC Card -->
+              <div class="col-xl-4 col-md-4 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="
+                            text-xs
+                            font-weight-bold
+                            text-info text-uppercase
+                            mb-1
+                          "
+                        >
+                          Total Volume
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                          <div class="col-auto">
+                            <div
+                              class="
+                                h5
+                                mb-0
+                                mr-3
+                                font-weight-bold
+                                text-gray-800
+                              "
+                            >
+                              $ <span id="totalVolume">0.0</span> <small>/ <span id="totalTX"></span></span> <small>TX</small></small>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- JPYC Card -->
+              <div class="col-xl-4 col-md-4 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="
+                            text-xs
+                            font-weight-bold
+                            text-primary text-uppercase
+                            mb-1
+                          "
+                        >
+                          Total JPYC 
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                          <span id="totalJPYC">0.0</span>
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <img src="img/jpyc.png" width="48px"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- USDC Card -->
+              <div class="col-xl-4 col-md-4 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                  <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div
+                          class="
+                            text-xs
+                            font-weight-bold
+                            text-success text-uppercase
+                            mb-1
+                          "
+                        >
+                          Total USDC
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                          <span id="totalUSDC">0.0</span>
+                        </div>
+                      </div>
+                      <div class="col-auto">
+                        <img src="img/USDC.svg" width="48px"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+  
+            </div>
+
+
             <!-- Content Row -->
 
             <div class="row">
@@ -249,9 +353,10 @@
                                       <tr>
                                           <th>#</th>
                                           <th>User</th>
+                                          <th>total swapped <i class="fas fa-dollar-sign"></i></th>
                                           <th>swapped JPYC</th>
                                           <th>swapped USDC</th>
-                                          <th>total swapped (USDC)</th>
+                                          
                                           
                                       </tr>
                                   </thead>
@@ -266,7 +371,8 @@
             
             </div>
 
-           
+       
+            <!-- Content Row -->
 
           </div>
           <!-- /.container-fluid -->
