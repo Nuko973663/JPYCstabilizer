@@ -466,10 +466,8 @@ const updateAllowance = async () => {
 };
 
 const watchGas = async () => {
-
   let gas = await nukoZ.gas.getGas();
   $("#gasPrice").text(gas + " " + nukoZ.gas.pref);
-
 
   nukoZ.gas.labels.forEach((label) => {
     let str = label[0].toUpperCase() + label.substring(1);
@@ -958,7 +956,6 @@ const initialize = () => {
       watchGas();
     });
   });
-
 
   $("#submitAutoSwap").on("click", () => {
     let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val();
