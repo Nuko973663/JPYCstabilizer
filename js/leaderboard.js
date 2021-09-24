@@ -170,6 +170,30 @@ const initialize = () => {
   nuko.gasPref = localStorage.gasPref;
   nuko.user = localStorage.user;
 
+  NukoApi.getVolumes().then((vols) => {
+    console.log(vols);
+    $("#totalVolume").text(
+      vols.total.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      })
+    );
+    $("#totalJPYC").text(
+      vols.jpyc.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      })
+    );
+    $("#totalUSDC").text(
+      vols.usdc.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      })
+    );
+    $("#totalTX").text(
+      vols.totalTX.toLocaleString(undefined, {
+        maximumFractionDigits: 0,
+      })
+    );
+  });
+
   NukoApi.getLeaderboard().then((data) => {
     let table = $("#dataTable").DataTable();
     let count = 1;
@@ -179,9 +203,15 @@ const initialize = () => {
       table.row.add([
         count,
         str,
-        parseInt(row["sum(jpyc)"]).toLocaleString(2),
-        parseFloat(row["sum(usdc)"]).toLocaleString(),
-        parseFloat(row["sum(total)"]).toLocaleString(),
+        parseFloat(row["sum(total)"]).toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        }),
+        parseInt(row["sum(jpyc)"]).toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        }),
+        parseFloat(row["sum(usdc)"]).toLocaleString(undefined, {
+          maximumFractionDigits: 0,
+        }),
       ]);
       count = count + 1;
     });

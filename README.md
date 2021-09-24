@@ -6,12 +6,17 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 - dark mode の実装
 - ウォレットアドレスの非表示オプション
-- リーダーボード実装
-- 報酬履歴表示
 - スタビの APR 表示
 - 流動性プールの APR 表示
+- 中間レートだけでなく、実スワップレートも取ってくる
 
 ## update log
+
+### [v.20210924.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210924.1)
+
+- リーダーボードに JPYC Stabilizer の出来高を表示
+- サーバー負荷軽減のため、ActiveUsers の更新間隔を変更（1 分弱 →2 分弱）
+- リロード時に 1 時間分のチャートを表示
 
 ### [v.20210924.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210924.0)
 

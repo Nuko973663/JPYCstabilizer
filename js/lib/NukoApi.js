@@ -61,9 +61,18 @@ export class NukoApi {
   /**
    * getRateLog
    */
-  static async getRateLog() {
+  static async getRateLog(duration = 0, pairAddress = "") {
+    let s_duration = "";
     let log;
-    await fetch(NUKOAPI + "v1/rateLog/")
+    if (duration != 0) s_duration = duration.toString();
+    if (pairAddress.length > 0) {
+      if (s_duration.length > 0) {
+        s_duration = s_duration + "/" + pairAddress;
+      } else {
+        s_duration = (3600 * 24 * 7 * 1000).toString() + "/" + pairAddress;
+      }
+    }
+    await fetch(NUKOAPI + "v1/rateLog/" + s_duration)
       .then((response) => response.json())
       .then((data) => {
         //console.log(data);
@@ -117,5 +126,19 @@ export class NukoApi {
     await NukoEtc.postData(NUKOAPI + "v1/winner", param).then((data) => {
       console.log(data);
     });
+  }
+
+  /**
+   * getVolumes
+   */
+  static async getVolumes() {
+    let ret;
+    await fetch(NUKOAPI + "v1/volumes/")
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log(data);
+        ret = data;
+      });
+    return ret;
   }
 }
