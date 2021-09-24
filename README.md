@@ -13,6 +13,11 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210924.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210924.0)
+
+- リーダーボード実装
+- リファクタリング
+
 ### [v.20210922.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210922.1)
 
 - Fixed threshold 用 strategy analysis view の追加

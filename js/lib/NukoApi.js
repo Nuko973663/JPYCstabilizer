@@ -1,5 +1,7 @@
 /**
  * NukoApi.js
+ *
+ * コード分離中
  */
 "use strict";
 
@@ -82,5 +84,38 @@ export class NukoApi {
         ret = data.sma;
       });
     return ret;
+  }
+
+  /**
+   * getLeaderboard
+   */
+  static async getLeaderboard() {
+    let ret;
+    await fetch(NUKOAPI + "v1/leaderboard/")
+      .then((response) => response.json())
+      .then((data) => {
+        // console.log(data);
+        ret = data;
+      });
+    return ret;
+  }
+
+  /**
+   * postWin
+   */
+  static async postWin(date, address, usdc, jpyc, total, config) {
+    const digest = await NukoEtc.sha256(address);
+    let param = {
+      date: date,
+      hash: digest,
+      jpyc: jpyc,
+      usdc: usdc,
+      total: total,
+      config: config,
+    };
+    console.log(param);
+    await NukoEtc.postData(NUKOAPI + "v1/winner", param).then((data) => {
+      console.log(data);
+    });
   }
 }
