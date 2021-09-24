@@ -9,7 +9,7 @@ import { Nuko } from "./lib/Nuko.min.js";
 
 var nukoZ = new Nuko();
 
-const VERSION_TEXT = "20210924.0";
+const VERSION_TEXT = "20210924.1";
 
 var nuko = {
   rate: [],
