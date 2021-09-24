@@ -10,7 +10,7 @@
     <meta name="description" content="" />
     <meta name="author" content="nuko973663" />
     <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
-    <title>JPYC Stabilizer - Strategy</title>
+    <title>JPYC Stabilizer - Leaderboard</title>
 
     <!-- Custom fonts for this template-->
     <link
@@ -70,14 +70,14 @@
           </a>
         </li>
 
-        <li class="nav-item active">
+        <li class="nav-item">
           <a class="nav-link" href="strategy.html">
             <i class="fas fa-fw fa-chess-rook"></i>
             <span>Strategy</span>
           </a>
         </li>
 
-        <li class="nav-item">
+        <li class="nav-item active">
           <a class="nav-link" href="leaderboard.html">
             <i class="fas fa-fw fa-cat"></i>
             <span>Leaderboard</span>
@@ -226,7 +226,7 @@
 
             <div class="d-sm-flex align-items-center justify-content-between mb-4">
 
-              <h1 class="h3 mb-0 text-gray-800">Strategy</h1>              
+              <h1 class="h3 mb-0 text-gray-800">Leaderboard</h1>              
               
             </div>
     
@@ -236,111 +236,23 @@
 
             <div class="row">
 
-
-              <!-- Area Chart -->
-              <div class="col-xl-12 col-lg-12">
-                <div class="card shadow mb-4">
-                  <!-- Card Header - Dropdown -->
-                  <div
-                    class="
-                      card-header
-                      py-3
-                      d-flex
-                      flex-row
-                      align-items-center
-                      justify-content-between
-                    "
-                  >
-                    <h6 class="m-0 font-weight-bold text-primary">
-                      Chart
-                    </h6>
-                    
-                  </div>
-                  <!-- Card Body -->
-                  <div class="card-body">
-                    <div class="chart-area">
-                      <canvas id="myAreaChart"></canvas>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-    
-
-            </div>
-
-            <div class="row">
-              <div class="col-xl-12 col-lg-12">
-                <div class="card shadow mb-4">
-                  <!-- Card Header - Dropdown -->
-                  <div
-                    class="
-                      card-header
-                      py-3
-                      d-flex
-                      flex-row
-                      align-items-center
-                      justify-content-between
-                    ">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                      Settings
-                    </h6>
-                    
-                  </div>
-                  <!-- Card Body -->
-                  <div class="card-body">
-                    <div class="form-group">
-                        
-                      <label for="spreadWidth">Swap threshold</label>
-                      <div class="input-group mb-3">
-                        <div class="input-group-append">
-                          <span class="input-group-text" id="upperlabel">Upper threshold</span>
-                        </div>
-                        <input type="number" step="0.1" class="form-control" value="117.74" aria-label="" aria-describedby="upperLabel" id="swapUpperThreshold">
-                      </div>
-                      <div class="input-group mb-3">
-                        <div class="input-group-append">
-                          <span class="input-group-text" id="lowerlabel">Lower threshold</span>
-                        </div>
-                        <input type="number" step="0.1" class="form-control" value="115.74" aria-label="" aria-describedby="lowerLabel" id="swapLowerThreshold">
-                      </div>
-                    </div>
-                    
-                    <div>
-                      Upper limit triggers: <span id="numUpper"></span>
-                    </div>
-                    <div>
-                      Lower limit triggers: <span id="numLower"></span>
-                    </div>
-
-                  </div>
-
-                </div>
-                
-              </div>
-            </div>
-
-            <div class="row">
-
-              <!-- Activity Log 
+              <!-- Activity Log  --> 
               <div class="col-xl-12 col-lg-12">
                   <div class="card shadow mb-4">
                       <div class="card-header py-3">
-                          <h6 class="m-0 font-weight-bold text-primary">Activity Log</h6>
+                          <h6 class="m-0 font-weight-bold text-primary">Leaderboard <i class="fas fa-fw fa-cat"></i> </h6>
                       </div>
                       <div class="card-body">
                           <div class="table-responsive">
                               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                   <thead>
                                       <tr>
-                                          <th>DateTime</th>
-                                          <th>from</th>
-                                          <th>to</th>
-                                          <th>rate</th>
-                                          <th>amountIn</th>
-                                          <th>amountOutMin</th>
-                                          <th>gas</th>
-                                          <th>TX</th>
+                                          <th>#</th>
+                                          <th>User</th>
+                                          <th>swapped JPYC</th>
+                                          <th>swapped USDC</th>
+                                          <th>total swapped (USDC)</th>
+                                          
                                       </tr>
                                   </thead>
                                   <tbody>
@@ -351,7 +263,7 @@
                       </div>
                   </div>
               </div>
-            -->
+            
             </div>
 
            
@@ -405,6 +317,6 @@
     <script src="vendor/chart.js/Chart.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
-    <script type="module" src="js/strategy.min.js"></script>
+    <script type="module" src="js/leaderboard.min.js"></script>
   </body>
 </html>

@@ -5,18 +5,13 @@
 
 "use strict";
 
-import { NukoApi } from "./lib/NukoApi.min.js";
-//import { NukoEtc } from "/js/lib/NukoEtc.min.js";
+import { Nuko } from "./lib/Nuko.min.js";
 
-const VERSION_TEXT = "20210922.1";
+var nukoZ = new Nuko();
+
+const VERSION_TEXT = "20210924.0";
 
 var nuko = {
-  gas: 0,
-  gasList: null,
-  gasPref: "fastest",
-  gasId: 0,
-  gasInterval: 15000,
-  gasLimit: 300000,
   rate: [],
   rateRaw: [],
   rateId: 0,
@@ -50,6 +45,7 @@ var nuko = {
   jpyusdId: 0,
   flgSwapping: 0,
   wallet: null,
+  user: "",
   password: "c04Bef8613730faC95166A970300caC35b1Af883",
   contractRate: [],
   versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
@@ -111,21 +107,25 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
   let table = $("#dataTable").DataTable();
   let timestamp = new Date();
   let dt = timestamp.toLocaleString();
-  let gasEstimate = "est. " + (((gas * nuko.gasLimit) / 1e9) * 0.5).toFixed(4);
+  let gasEstimate =
+    "est. " + (((gas * nukoZ.gas.limit) / 1e9) * 0.5).toFixed(4);
   let row = table.row.add([
     dt,
     from,
     to,
     nuko.rate[i],
-    amount,
-    minAmount,
+    amount.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    }),
+    minAmount.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    }),
     gasEstimate,
     "",
   ]);
   row.draw();
   table.column("0:visible").order("dsc").draw();
 
-  console.log(minAmount);
   //
   let amountIn = Math.floor(amount * 10 ** decimal[from]) / 10 ** decimal[from];
   amountIn =
@@ -156,7 +156,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
       )
       .send({
         from: nuko.wallet[0].address,
-        gasLimit: web3.utils.toHex(nuko.gasLimit),
+        gasLimit: web3.utils.toHex(nukoZ.gas.limit),
         gasPrice: web3.utils.toHex(gas * 1e9),
       })
       .once("transactionHash", (hash) => {
@@ -171,8 +171,12 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
             from,
             to,
             poolLink + nuko.rate[i],
-            amount,
-            minAmount,
+            amount.toLocaleString(undefined, {
+              maximumFractionDigits: 2,
+            }),
+            minAmount.toLocaleString(undefined, {
+              maximumFractionDigits: 2,
+            }),
             gasEstimate,
             link,
           ])
@@ -188,8 +192,12 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
           from,
           to,
           poolLink + nuko.rate[i],
-          amount,
-          minAmount,
+          amount.toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          }),
+          minAmount.toLocaleString(undefined, {
+            maximumFractionDigits: 2,
+          }),
           gasUsed,
           link,
         ];
@@ -199,6 +207,18 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
           nuko.swapLog.pop();
         }
         localStorage.swapLog = JSON.stringify(nuko.swapLog);
+        let jpyc, usdc, total;
+
+        if (from == "JPYC") {
+          jpyc = parseFloat(amount);
+          usdc = 0;
+          total = jpyc / nuko.rate[i];
+        } else {
+          jpyc = 0;
+          usdc = parseFloat(amount);
+          total = usdc;
+        }
+        Nuko.API.postWin(dt, nuko.wallet[0].address, usdc, jpyc, total, "");
       });
   } catch (e) {
     link = link + '<i class="fas fa-exclamation-triangle"></i>';
@@ -208,8 +228,12 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
         from,
         to,
         poolLink + nuko.rate[i],
-        amount,
-        minAmount,
+        amount.toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        }),
+        minAmount.toLocaleString(undefined, {
+          maximumFractionDigits: 2,
+        }),
         gasEstimate,
         link,
       ])
@@ -217,6 +241,7 @@ const goSwap = async (from, to, amount, minAmount, gas, pool) => {
     table.column("0:visible").order("dsc").draw();
     console.log(e);
   }
+
   nuko.flgSwapping = false;
   getBalance();
 };
@@ -289,7 +314,9 @@ const watchRate = async () => {
             "JPYC",
             amount,
             minAmount,
-            nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax,
+            nukoZ.gas.price < nuko.swapGasMax
+              ? nukoZ.gas.price
+              : nuko.swapGasMax,
             i
           );
         }
@@ -311,7 +338,9 @@ const watchRate = async () => {
             "USDC",
             amount,
             minAmount,
-            nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax,
+            nukoZ.gas.price < nuko.swapGasMax
+              ? nukoZ.gas.price
+              : nuko.swapGasMax,
             i
           );
         }
@@ -437,33 +466,15 @@ const updateAllowance = async () => {
 };
 
 const watchGas = async () => {
-  /* yamachang123
-#gasPrice に選択中のnuko.gasPrefを明示。（非同期でGasとSwapは行われているため表記と異なるガス代になるため）
-*/
-  nuko.gas = await getGas();
+  let gas = await nukoZ.gas.getGas();
+  $("#gasPrice").text(gas + " " + nukoZ.gas.pref);
 
-  $("#gasPrice").text(nuko.gas + " " + nuko.gasPref);
-  $("#gasFastest").text(
-    "fastest : " + parseInt(nuko.gasList.fastest) + " gwei"
-  );
-  $("#gasFaster").text("faster : " + parseInt(nuko.gasList.faster) + " gwei");
-  $("#gasFast").text("fast : " + parseInt(nuko.gasList.fast) + " gwei");
-  $("#gasStandard").text(
-    "standard : " + parseInt(nuko.gasList.standard) + " gwei"
-  );
-  $("#gasSafeLow").text(
-    "safelow : " + parseInt(nuko.gasList.safeLow) + " gwei"
-  );
-};
-
-const getGas = async () => {
-  let response = await fetch("https://gasstation-mainnet.matic.network");
-  let json = await response.json();
-  nuko.gasList = json;
-  nuko.gasList.faster =
-    (parseInt(nuko.gasList.fastest) + parseInt(nuko.gasList.fast)) / 2;
-  let gas = parseInt(json[nuko.gasPref]);
-  return gas;
+  nukoZ.gas.labels.forEach((label) => {
+    let str = label[0].toUpperCase() + label.substring(1);
+    $("#gas" + str).text(
+      label + " : " + parseInt(nukoZ.gas.list[label]) + " gwei"
+    );
+  });
 };
 
 const getJPYUSD = async () => {
@@ -498,7 +509,7 @@ const approveCoin = async (tokenContractAddress, spenderAddress, id) => {
     .send({
       from: nuko.wallet[0].address,
       gasLimit: web3.utils.toHex(100000),
-      gasPrice: web3.utils.toHex(nuko.gasList.fast * 1e9),
+      gasPrice: web3.utils.toHex(nukoZ.gas.list.fast * 1e9),
     })
     .once("transactionHash", (hash) => {
       $(id).text("sent");
@@ -511,8 +522,6 @@ const approveCoin = async (tokenContractAddress, spenderAddress, id) => {
 };
 
 const updateLimit = () => {
-  //nuko.upperThreshold = nuko.target + nuko.spread / 2;
-  //nuko.lowerThreshold = nuko.target - nuko.spread / 2;
   $("#upperLimit").text(nuko.upperThreshold.toFixed(2));
   $("#lowerLimit").text(nuko.lowerThreshold.toFixed(2));
 };
@@ -575,7 +584,8 @@ const autoSwapMatic = async () => {
       10 ** decimal["MATIC"];
     amountOut = web3.utils.toWei(amountOut.toString());
 
-    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax;
+    let gas =
+      nukoZ.gas.price < nuko.swapGasMax ? nukoZ.gas.price : nuko.swapGasMax;
     const swap = async () => {
       try {
         await nuko.swapContract[0].methods
@@ -588,7 +598,7 @@ const autoSwapMatic = async () => {
           )
           .send({
             from: nuko.wallet[0].address,
-            gasLimit: web3.utils.toHex(nuko.gasLimit),
+            gasLimit: web3.utils.toHex(nukoZ.gas.limit),
             gasPrice: web3.utils.toHex(gas * 1e9),
           });
       } catch (e) {
@@ -628,7 +638,8 @@ const autoSwapMatic = async () => {
       10 ** decimal["MATIC"];
     amountOut = web3.utils.toWei(amountOut.toString());
 
-    let gas = nuko.gas < nuko.swapGasMax ? nuko.gas : nuko.swapGasMax;
+    let gas =
+      nukoZ.gas.price < nuko.swapGasMax ? nukoZ.gas.price : nuko.swapGasMax;
     const swap = async () => {
       try {
         await nuko.swapContract[0].methods
@@ -641,7 +652,7 @@ const autoSwapMatic = async () => {
           )
           .send({
             from: nuko.wallet[0].address,
-            gasLimit: web3.utils.toHex(nuko.gasLimit),
+            gasLimit: web3.utils.toHex(nukoZ.gas.limit),
             gasPrice: web3.utils.toHex(gas * 1e9),
           });
       } catch (e) {
@@ -679,7 +690,7 @@ const main = () => {
   );
 
   watchRate().then(
-    NukoApi.getCommunityBalance(
+    Nuko.API.getCommunityBalance(
       nuko.wallet[0].address,
       nuko,
       updateCommunityBalance
@@ -688,20 +699,20 @@ const main = () => {
   nuko.rateId = setInterval(watchRate, nuko.rateInterval);
 
   watchGas();
-  nuko.gasId = setInterval(watchGas, nuko.gasInterval);
+  setInterval(watchGas, nukoZ.gas.interval);
 
   watchJPYUSD();
   nuko.jpyusdId = setInterval(watchJPYUSD, nuko.jpyusdInterval);
 
   nuko.verId = setInterval(checkLatestVersion, nuko.versionInterval);
 
-  NukoApi.getActiveUsers(nuko.wallet[0].address);
+  Nuko.API.getActiveUsers(nuko.wallet[0].address);
   setInterval(() => {
-    NukoApi.getActiveUsers(nuko.wallet[0].address);
+    Nuko.API.getActiveUsers(nuko.wallet[0].address);
   }, nuko.keepaliveInterval);
 
   setInterval(() => {
-    NukoApi.getCommunityBalance(
+    Nuko.API.getCommunityBalance(
       nuko.wallet[0].address,
       nuko,
       updateCommunityBalance
@@ -718,8 +729,6 @@ const main = () => {
   }, 15 * 1000);
 };
 
-const updateSwapThreshold = () => {};
-
 /**
  * update wallet address
  */
@@ -728,13 +737,16 @@ const updateAccount = () => {
     $("#wallet").text("Create or Import Wallet");
   } else {
     $("#wallet").text(nuko.wallet[0].address);
+
+    Nuko.ETC.sha256(nuko.wallet[0].address).then((hash) => {
+      localStorage.user = hash;
+    });
   }
 };
 
 const resizeChart = () => {
   let w = $("#containerBody").width() - 400;
   chartJPYCUSDC.resize(w, ctx.clientHeight);
-  //  console.log(ctx.clientWidth, ctx.clientHeight);
 };
 
 const updateLiquidity = () => {
@@ -826,7 +838,7 @@ const initialize = () => {
   if (localStorage.gasPref == undefined) {
     localStorage.gasPref = "fastest";
   }
-  nuko.gasPref = localStorage.gasPref;
+  nukoZ.gas.pref = localStorage.gasPref;
 
   if (localStorage.lowerSwapMaticThreshold == undefined) {
     localStorage.lowerSwapMaticThreshold = "0";
@@ -897,15 +909,6 @@ const initialize = () => {
     );
   });
 
-  /*
-  $(document).on("input", "#spreadWidth", function () {
-    nuko.spread = parseFloat($(this).val());
-    localStorage.spread = nuko.spread;
-    $("#spread").text(nuko.spread.toFixed(1));
-    updateLimit();
-  });
-  */
-
   $("#createNewWallet").on("click", () => {
     web3.eth.accounts.wallet.clear();
     nuko.wallet = web3.eth.accounts.wallet.create(1);
@@ -943,26 +946,17 @@ const initialize = () => {
   $("#swapSwitch").on("change", () => {
     localStorage.switch = $("#swapSwitch").prop("checked");
   });
-  $("#gasFastest").on("click", () => {
-    nuko.gasPref = "fastest";
-    localStorage.gasPref = nuko.gasPref;
-    watchGas();
+
+  // gas pref
+  nukoZ.gas.labels.forEach((label) => {
+    let str = label[0].toUpperCase() + label.substring(1);
+    $("#gas" + str).on("click", () => {
+      nukoZ.gas.pref = label;
+      localStorage.gasPref = nukoZ.gas.pref;
+      watchGas();
+    });
   });
-  $("#gasFaster").on("click", () => {
-    nuko.gasPref = "faster";
-    localStorage.gasPref = nuko.gasPref;
-    watchGas();
-  });
-  $("#gasFast").on("click", () => {
-    nuko.gasPref = "fast";
-    localStorage.gasPref = nuko.gasPref;
-    watchGas();
-  });
-  $("#gasStandard").on("click", () => {
-    nuko.gasPref = "standard";
-    localStorage.gasPref = nuko.gasPref;
-    watchGas();
-  });
+
   $("#submitAutoSwap").on("click", () => {
     let lowerSwapMaticThreshold = $("#lowerSwapMaticThreshold").val();
     let swapMaticAmount = $("#swapMaticAmount").val();
@@ -990,17 +984,36 @@ const initialize = () => {
 
   let table = $("#dataTable").DataTable();
   nuko.swapLog.forEach((log) => {
+    log[4] = log[4].toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
+    log[5] = log[5].toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
     table.row.add(log);
   });
   table.column("0:visible").order("dsc").draw();
 
+  if (!localStorage.sentPastActivity == 1) {
+    nuko.swapLog.forEach((log) => {
+      let jpyc, usdc, total;
+      let rate = parseFloat(log[3].toString().slice(-6));
+      if (log[1] == "JPYC") {
+        jpyc = parseFloat(log[4]);
+        usdc = 0;
+        total = jpyc / rate;
+      } else {
+        jpyc = 0;
+        usdc = parseFloat(log[4]);
+        total = usdc;
+      }
+      Nuko.API.postWin(log[0], nuko.wallet[0].address, usdc, jpyc, total, "");
+    });
+    localStorage.sentPastActivity = 1;
+  }
+
   updateAllowance();
 
-  /*
-  nuko.spread = parseFloat(localStorage.spread ? localStorage.spread : 2);
-  $("#spreadWidth").val(nuko.spread);
-  $("#spread").text(nuko.spread.toFixed(1));
-  */
   nuko.upperThreshold = parseFloat(
     localStorage.upperThreshold ? localStorage.upperThreshold : 117.7
   );
