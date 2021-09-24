@@ -999,12 +999,12 @@ const initialize = () => {
       let jpyc, usdc, total;
       let rate = parseFloat(log[3].toString().slice(-6));
       if (log[1] == "JPYC") {
-        jpyc = parseFloat(log[4]);
+        jpyc = parseFloat(log[4].replace(/,/g, ""));
         usdc = 0;
         total = jpyc / rate;
       } else {
         jpyc = 0;
-        usdc = parseFloat(log[4]);
+        usdc = parseFloat(log[4].replace(/,/g, ""));
         total = usdc;
       }
       Nuko.API.postWin(log[0], nuko.wallet[0].address, usdc, jpyc, total, "");
