@@ -50,7 +50,7 @@ var nuko = {
   contractRate: [],
   versionInterval: 3600 * 1000, // interval to check latest version: 1 hour
   versionAlertFlag: false,
-  keepaliveInterval: 45 * 1000, // interval to get active user number
+  keepaliveInterval: 115 * 1000, // interval to get active user number
   reloadAvailableUpdates: false,
   lowerSwapMaticThreshold: 0,
   swapMaticAmount: 0,
@@ -834,7 +834,7 @@ const showAlert = (message) => {
   $("#alert").append(txt);
 };
 
-const initialize = () => {
+const initialize = async () => {
   if (localStorage.gasPref == undefined) {
     localStorage.gasPref = "fastest";
   }
@@ -1067,6 +1067,41 @@ const initialize = () => {
       nuko.reloadAvailableUpdates = $("#reloadAvailableUpdate").prop("checked");
       localStorage.reloadAvailableUpdates = nuko.reloadAvailableUpdates;
     });
+  }
+
+  {
+    let dataQuick = await Nuko.API.getRateLog(
+      3600 * 1 * 1000,
+      contractAddress.pairQuick
+    );
+    let dataSushi = await Nuko.API.getRateLog(
+      3600 * 1 * 1000,
+      contractAddress.pairSushi
+    );
+
+    let logQuick = dataQuick.reduce(
+      (acc, cur) => {
+        acc.date.push(new Date(cur.date).toLocaleString().slice(0, -3));
+        acc.rate.push(cur.rate);
+        return acc;
+      },
+      { date: [], rate: [] }
+    );
+
+    let logSushi = dataSushi.reduce(
+      (acc, cur) => {
+        acc.date.push(new Date(cur.date).toLocaleString().slice(0, -3));
+        acc.rate.push(cur.rate);
+        return acc;
+      },
+      { date: [], rate: [] }
+    );
+
+    let chart = chartJPYCUSDC;
+    chart.data.labels = logQuick.date;
+    chart.data.datasets[0].data = logQuick.rate;
+    chart.data.datasets[1].data = logSushi.rate;
+    chart.update();
   }
 };
 
