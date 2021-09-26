@@ -1,5 +1,7 @@
 # JPYCstabilizer
 
+hosted on [https://nuko973663.github.io/JPYCstabilizer/](https://nuko973663.github.io/JPYCstabilizer/)
+
 see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/articles/ZZoaKG4yb)
 
 ## to do
