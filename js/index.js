@@ -9,7 +9,7 @@ import { Nuko } from "./lib/Nuko.min.js";
 
 var nukoZ = new Nuko();
 
-const VERSION_TEXT = "20210924.1";
+const VERSION_TEXT = "20210929.0";
 
 var nuko = {
   rate: [],
@@ -863,6 +863,8 @@ const initialize = async () => {
     $("#createNewWallet").show();
     $("#privateKey").prop("readonly", true);
     $("#modalTitle").text("Create New Wallet");
+    $("#address").val("");
+    $("#privateKey").val("");
     $("#exampleModal").modal("show");
   });
   $("#importWallet").on("click", () => {
@@ -870,7 +872,18 @@ const initialize = async () => {
     $("#createNewWallet").hide();
     $("#modalTitle").text("Import Wallet");
     $("#privateKey").prop("readonly", false);
+    $("#address").val("");
+    $("#privateKey").val("");
     $("#exampleModal").modal("show");
+  });
+  $("#showWallet").on("click", () => {
+    $("#import").hide();
+    $("#createNewWallet").hide();
+    $("#modalTitle").text("Show Wallet");
+    $("#privateKey").prop("readonly", true);
+    $("#exampleModal").modal("show");
+    $("#address").val(nuko.wallet[0].address);
+    $("#privateKey").val(nuko.wallet[0].privateKey);
   });
 
   $("#lowerSwapMaticThreshold").val(nuko.lowerSwapMaticThreshold);

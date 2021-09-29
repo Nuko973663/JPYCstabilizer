@@ -14,6 +14,10 @@ see article on hide.ac [https://hide.ac/articles/ZZoaKG4yb](https://hide.ac/arti
 
 ## update log
 
+### [v.20210929.0](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210929.0)
+
+- ウォレット情報を表示するためのメニューアイテムを追加
+
 ### [v.20210924.1](https://github.com/Nuko973663/JPYCstabilizer/releases/tag/v.20210924.1)
 
 - リーダーボードに JPYC Stabilizer の出来高を表示
