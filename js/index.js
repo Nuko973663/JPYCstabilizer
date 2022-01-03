@@ -58,8 +58,8 @@ var nuko = {
 };
 
 const NODE_URL = [
-  "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws",
-  "https://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet",
+  //  "wss://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet/ws",
+  //  "https://speedy-nodes-nyc.moralis.io/3e336936ccd6ec0af99dc191/polygon/mainnet",
   "https://polygon-rpc.com",
 ];
 
@@ -96,8 +96,8 @@ const options = {
   },
 };
 
-var provider = new Web3.providers.WebsocketProvider(NODE_URL[0], options);
-var web3 = new Web3(provider);
+//var provider = new Web3.providers.WebsocketProvider(NODE_URL[0], options);
+var web3 = new Web3(NODE_URL[0]);
 
 /**
  * goSwap
